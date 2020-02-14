@@ -1,0 +1,3 @@
+work/h2o_split.o: h2o_split.c ../../../include/lab2-api.h \
+ ../../../include/usertraps.h ../../../include/misc.h \
+ ../include/spawn.h

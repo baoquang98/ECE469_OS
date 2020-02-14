@@ -1,0 +1,3 @@
+work/so4_injection.o: so4_injection.c ../../../include/lab2-api.h \
+ ../../../include/usertraps.h ../../../include/misc.h \
+ ../include/spawn.h
