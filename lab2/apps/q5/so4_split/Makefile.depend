@@ -1,3 +1,0 @@
-work/so4_split.o: so4_split.c ../../../include/lab2-api.h \
- ../../../include/usertraps.h ../../../include/misc.h \
- ../include/spawn.h

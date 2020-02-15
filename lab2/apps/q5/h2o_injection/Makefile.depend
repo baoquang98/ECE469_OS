@@ -1,3 +1,0 @@
-work/h2o_injection.o: h2o_injection.c ../../../include/lab2-api.h \
- ../../../include/usertraps.h ../../../include/misc.h \
- ../include/spawn.h

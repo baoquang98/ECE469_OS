@@ -1,3 +1,0 @@
-work/h2so4_produce.o: h2so4_produce.c ../../../include/lab2-api.h \
- ../../../include/usertraps.h ../../../include/misc.h \
- ../include/spawn.h
