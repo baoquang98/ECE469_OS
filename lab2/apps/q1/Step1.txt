@@ -1,0 +1,15 @@
+1. How many semaphores are available in DLXOS?
+32 as indicated by MAX_SEMS
+2. How many locks are available in DLXOS?
+64 as indicated by MAX_LOCKS
+3. How is a semaphore created in DLXOS?
+First we check if synchronization has failed, then we check
+if the queue is successfully prepared, and then we initialize
+the semaphore with an integer value.
+4. Explain how sem_signal and sem_wait work.
+sem_signal: increment the counter before checking the value in the semaphore, and if the value is larger than 0,
+            that means there is a process to wake up and we put it in the pcb queue
+sem_wait: wait until the value is less than or equal to zero and then start the process.
+5. What is a handle and how is it used to access semaphores in DLXOS?
+Handle is our access to the semaphores. First it checks if sem work, if it exceeds the maximum number of
+semaphores, and check if the requested semaphore is inuse at all. If all those checks do not fail, we run the signal.
