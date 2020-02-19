@@ -105,5 +105,10 @@ void main (int argc, char *argv[])
     Printf("Bad semaphore s_procs_completed (%d) in ", s_procs_completed); Printf(argv[0]); Printf("\n");
     Exit();
   }
+  Printf("%d H20 molecues left over. ", h2o - 2*h2o_split_count);
+  Printf("%d H2 molecues left over. ", 2*h2o_split_count - h2so4_produce_count);
+  Printf("%d O2 molecues left over. ",h2o_split_count + so4_split_count - h2so4_produce_count);
+  Printf("%d SO2 molecues left over. ",so4_split_count - h2so4_produce_count);
+  Printf("%d H2SO4 molecues left over.\n", h2so4_produce_count);
   Printf("All other processes completed, exiting main process.\n");
 }
