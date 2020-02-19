@@ -1,0 +1,5 @@
+How to build the solutions:
+within the subfolders, type in
+make
+and then if we would like to run it:
+make run
