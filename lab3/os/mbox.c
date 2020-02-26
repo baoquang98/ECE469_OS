@@ -48,6 +48,7 @@ mbox_t MboxCreate() {
 //similar to sem_create procedure? pick the first mbox thats not inuse
 //init all the fields iinside the mbox ur picking
  	//Disable interupt here
+	
 	int handle = 0;
 	//Search for the first not in use mailbox
 	for(handle = 0; handle < MBOX_NUM_MBOXES; handle++) {
@@ -86,7 +87,7 @@ int MboxOpen(mbox_t handle) {
 	LockHandleAcquire(mbox_list[handle].lock);
 	mbox_list[handle].pid[GetCurrentPid()] = 1;
 	LockHandleRelease(mbox_list[handle].lock);
-  return MBOX_FAIL;
+  return MBOX_SUCCESS;
 }
 
 //-------------------------------------------------------
@@ -213,7 +214,7 @@ int MboxRecv(mbox_t handle, int maxlength, void* message) {
 	LockHandleRelease(mbox_list[handle].lock);
 	CondHandleSignal(mbox_list[handle].cond_full);
   
-  return MBOX_FAIL;
+  return mes->size;
 }
 
 //--------------------------------------------------------------------------------
@@ -255,5 +256,5 @@ int MboxCloseAllByPid(int pid) {
 		/////////
   	}
 
-  return MBOX_FAIL;
+  return MBOX_SUCCESS;
 }
