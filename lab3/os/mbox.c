@@ -112,7 +112,9 @@ int MboxClose(mbox_t handle) {
 	int i = 0;
 	int count = 0;
 	Link *l;
-	LockHandleAcquire(mbox_list[handle].lock);
+	if (SYNC_FAIL == LockHandleAcquire(mbox_list[handle].lock)){
+		return MBOX_FAIL;
+	}
 	for (i = 0; i < PROCESS_MAX_PROCS; i++) {
 		if (mbox_list[handle].pid[i]) 
 			count++;
@@ -126,7 +128,9 @@ int MboxClose(mbox_t handle) {
 		}
 		mbox_list[handle].inuse = 0;
 	}
-	LockHandleRelease(mbox_list[handle].lock);
+	if (SYNC_FAIL == LockHandleRelease(mbox_list[handle].lock)){
+		return MBOX_FAIL;
+	}
  return MBOX_SUCCESS;
 }
 
