@@ -153,20 +153,22 @@ int MboxClose(mbox_t handle) {
 int MboxSend(mbox_t handle, int length, void* message) {
  //acquire lock, check ur pid in the list of pid thats suppose to use the lock, check if the mbox is full, if full, wait on condition, copy the message to the buffer , put the messges in the queue, increment the total_message count, release lock
 	//Need much error checking
-	int i;
+	int i = 0;
 	Link * l;
-	LockHandleAcquire(mbox_list[handle].lock);
+	if (SYNC_FAIL==LockHandleAcquire(mbox_list[handle].lock)){
+		return MBOX_FAIL;
+	}
+	// if the target mail box is closed
 	if (!mbox_list[handle].pid[GetCurrentPid()]) {
 		return MBOX_FAIL;
 	}
-
+	// check if the target mail box is full
 	if (mbox_list[handle].total_messages >= MBOX_MAX_BUFFERS_PER_MBOX) {
 		CondHandleWait(mbox_list[handle].cond_full);
 	}
-	for (i = 0; i < MBOX_NUM_BUFFERS; i++) {
-		if (!mbox_messages_list[i].inuse) {
-			break;
-		}
+	
+	while (i < MBOX_NUM_BUFFERS && !mbox_messages_list[i].inuse){
+		i++;
 	}
 	mbox_messages_list[i].inuse = 1;
 	bcopy(message, mbox_messages_list[i].buffer, length);
@@ -176,7 +178,9 @@ int MboxSend(mbox_t handle, int length, void* message) {
 	l = AQueueAllocLink(&(mbox_messages_list[i]));
 	AQueueInsertLast(&(mbox_list[handle].message_buffer),l);
 
-	LockHandleRelease(mbox_list[handle].lock);
+	if (SYNC_FAIL == LockHandleRelease(mbox_list[handle].lock)){
+		return MBOX_FAIL;
+	}
 	CondHandleSignal(mbox_list[handle].cond_empty);
 
  return MBOX_SUCCESS;
@@ -206,7 +210,9 @@ int MboxRecv(mbox_t handle, int maxlength, void* message) {
 	}
 	mbox_message * mes;
 	Link * l;
-	LockHandleAcquire(mbox_list[handle].lock);
+	if (SYNC_FAIL==LockHandleAcquire(mbox_list[handle].lock)){
+		return MBOX_FAIL;
+	}
 	if (!mbox_list[handle].pid[GetCurrentPid()]) {
 		return MBOX_FAIL;
 	}
@@ -222,7 +228,9 @@ int MboxRecv(mbox_t handle, int maxlength, void* message) {
 	mes->inuse = 0;
 	AQueueRemove(&l);
 
-	LockHandleRelease(mbox_list[handle].lock);
+	if (SYNC_FAIL == LockHandleRelease(mbox_list[handle].lock)){
+		return MBOX_FAIL;
+	}
 	CondHandleSignal(mbox_list[handle].cond_full);
   
   return mes->size;
@@ -247,7 +255,9 @@ int MboxCloseAllByPid(int pid) {
 	int count;
 	for (handle = 0; handle < MBOX_NUM_MBOXES; handle++) {
 		if (mbox_list[handle].inuse) {
-			LockHandleAcquire(mbox_list[handle].lock);
+			if (SYNC_FAIL==LockHandleAcquire(mbox_list[handle].lock)){
+				return MBOX_FAIL;
+			}
 			count = 0;
 			for (i = 0; i < PROCESS_MAX_PROCS; i++) {
 				if (mbox_list[handle].pid[i]) 
@@ -262,7 +272,9 @@ int MboxCloseAllByPid(int pid) {
 				}
 				mbox_list[handle].inuse = 0;
 			}
-			LockHandleRelease(mbox_list[handle].lock);
+			if (SYNC_FAIL == LockHandleRelease(mbox_list[handle].lock)){
+				return MBOX_FAIL;
+			}
 		}
 		/////////
   	}
