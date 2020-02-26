@@ -82,11 +82,15 @@ mbox_t MboxCreate() {
 //
 //-------------------------------------------------------
 int MboxOpen(mbox_t handle) {
-//set the pid flag to be 1
+	//set the pid flag to be 1
 	
-	LockHandleAcquire(mbox_list[handle].lock);
+	if (SYNC_FAIL == LockHandleAcquire(mbox_list[handle].lock)){
+		return MBOX_FAIL;
+	}
 	mbox_list[handle].pid[GetCurrentPid()] = 1;
-	LockHandleRelease(mbox_list[handle].lock);
+	if (SYNC_FAIL == LockHandleRelease(mbox_list[handle].lock)){
+		return MBOX_FAIL;
+	}
   return MBOX_SUCCESS;
 }
 
