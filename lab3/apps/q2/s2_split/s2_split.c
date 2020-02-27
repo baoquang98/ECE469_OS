@@ -16,12 +16,10 @@ void main (int argc, char *argv[])
     Printf("Usage: "); Printf(argv[0]); Printf("<handle_to_page_mapped_semaphore> <handle_to_page_mapped_mbox> <handle_to_page_mapped_mbox>\n"); 
     Exit();
   } 
-
   // Convert the command-line strings into integers for use as handles
   s_procs_completed = dstrtol(argv[1], NULL, 10); // The "10" means base 10
   mbox_s2 = dstrtol(argv[2], NULL, 10);
   mbox_s = dstrtol(argv[3], NULL, 10);
-  Printf("S2 split process: %d\n", getpid());
   // Now print a message to show that everything worked
   mbox_open(mbox_s2);
   for (i = 0; i < 1; i++) {
@@ -35,9 +33,9 @@ void main (int argc, char *argv[])
   
   mbox_open(mbox_s);
   for (i = 0; i < 2; i++) {
-  	mbox_send(mbox_s2, sizeof(mes), (void *) mes);
+  	mbox_send(mbox_s, sizeof(mes), (void *) mes);
   }
-  mbox_close(mbox_s2);
+  mbox_close(mbox_s);
   
   Printf("S2 -> S + S, pid: %d\n", getpid());
   // Signal the semaphore to tell the original process that we're done

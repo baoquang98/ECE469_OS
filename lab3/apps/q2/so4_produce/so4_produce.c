@@ -17,28 +17,23 @@ void main (int argc, char *argv[])
     Printf("Usage: "); Printf(argv[0]); Printf("<handle_to_page_mapped_semaphore> <handle_to_page_mapped_mbox> <handle_to_page_mapped_mbox>\n"); 
     Exit();
   } 
-
   // Convert the command-line strings into integers for use as handles
   s_procs_completed = dstrtol(argv[1], NULL, 10); // The "10" means base 10
   mbox_s = dstrtol(argv[2], NULL, 10);
   mbox_o2 = dstrtol(argv[3], NULL, 10);
-  Printf("SO4 generation procs: %d\n", getpid());
   // Now print a message to show that everything worked
   mbox_open(mbox_s);
   for (i = 0; i < 1; i++) {
   	mes_recv = mbox_recv(mbox_s, sizeof(buffer_s), (void *) buffer_s);
-  	Printf("Consumed S number %d\n", i + 1);
 	/*if (mes_recv != sizeof(buffer_s)) {
 		Printf("Error receiving S molecule number %d in process %d\n", i+1, getpid());
 		Exit();
 	}*/
   }
   mbox_close(mbox_s);
-  
   mbox_open(mbox_o2);
   for (i = 0; i < 2; i++) {
   	mes_recv = mbox_recv(mbox_o2, sizeof(buffer_o2), (void *) buffer_o2);
-  	Printf("Consumed O2 number %d\n", i + 1);
   	/*if (mes_recv != sizeof(buffer_o2)) {
 		Printf("Error receiving O2 molecule number %d in process %d\n", i+1, getpid());
 		Exit();

@@ -22,7 +22,6 @@ void main (int argc, char *argv[])
   mbox_co = dstrtol(argv[2], NULL, 10);
   mbox_o2 = dstrtol(argv[3], NULL, 10);
 
-  Printf("CO split process, %d\n", getpid());
   // Now print a message to show that everything worked
   mbox_open(mbox_co);
   for (i = 0; i < 4; i++) {

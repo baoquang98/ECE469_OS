@@ -22,6 +22,7 @@ void main (int argc, char *argv[])
   mbox_open(mbox_s2);
   mbox_send(mbox_s2, sizeof(mes), (void *) mes);
   Printf("S2 injected, pid: %d\n", getpid());
+  mbox_close(mbox_s2);
 
   // Signal the semaphore to tell the original process that we're done
   if(sem_signal(s_procs_completed) != SYNC_SUCCESS) {

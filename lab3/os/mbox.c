@@ -83,7 +83,10 @@ mbox_t MboxCreate() {
 //-------------------------------------------------------
 int MboxOpen(mbox_t handle) {
 //set the pid flag to be 1
-	
+	if(!mbox_list[handle].inuse) {
+		printf("Mbox is not inuse, what are u doin process %d\n", GetCurrentPid());
+		return MBOX_FAIL;
+	}
 	LockHandleAcquire(mbox_list[handle].lock);
 	mbox_list[handle].pid[GetCurrentPid()] = 1;
 	LockHandleRelease(mbox_list[handle].lock);
@@ -149,6 +152,7 @@ int MboxSend(mbox_t handle, int length, void* message) {
 	Link * l;
 	LockHandleAcquire(mbox_list[handle].lock);
 	if (!mbox_list[handle].pid[GetCurrentPid()]) {
+		LockHandleRelease(mbox_list[handle].lock);
 		return MBOX_FAIL;
 	}
 
@@ -193,12 +197,11 @@ int MboxSend(mbox_t handle, int length, void* message) {
 int MboxRecv(mbox_t handle, int maxlength, void* message) {
 	//similar to MboxSend but get the first messages, return the number of bytes
 	//Need much error checking
+	mbox_message * mes;
+	Link * l;
 	if (maxlength > MBOX_MAX_MESSAGE_LENGTH){
 		return MBOX_FAIL;
 	}
-	mbox_message * mes;
-	Link * l;
-	LockHandleAcquire(mbox_list[handle].lock);
 	if (!mbox_list[handle].pid[GetCurrentPid()]) {
 		return MBOX_FAIL;
 	}
@@ -206,6 +209,7 @@ int MboxRecv(mbox_t handle, int maxlength, void* message) {
 	if (mbox_list[handle].total_messages == 0) {
 		CondHandleWait(mbox_list[handle].cond_empty);
 	}
+	LockHandleAcquire(mbox_list[handle].lock);
 	
 	l = AQueueFirst(&(mbox_list[handle].message_buffer));
 	mes = (mbox_message *) l->object;

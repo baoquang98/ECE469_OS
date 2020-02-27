@@ -77,6 +77,10 @@ void main (int argc, char *argv[])
     Printf("Bad sem_create in "); Printf(argv[0]); Printf("\n");
     Exit();
   }
+  mbox_open(s2_mbox);
+  mbox_open(co_mbox);
+  mbox_open(s_mbox);
+  mbox_open(o2_mbox);
 
   // Setup the command-line arguments for the new process.  We're going to
   // pass the handles to the shared memory page and the semaphore as strings
