@@ -109,18 +109,17 @@ int MboxOpen(mbox_t handle) {
 //-------------------------------------------------------
 int MboxClose(mbox_t handle) {
  //2 conditions: if not last pid, set flag in pid list to 0 else deletes everything in messges queue, free lock, set inuse to 0
-	int i = 0;
+	int i;
 	int count = 0;
 	Link *l;
 	if (SYNC_FAIL == LockHandleAcquire(mbox_list[handle].lock)){
 		return MBOX_FAIL;
 	}
+	// check if none of the processes are using the mailbox 
 	for (i = 0; i < PROCESS_MAX_PROCS; i++) {
-		if (mbox_list[handle].pid[i]) 
-			count++;
+		count += mbox_list[handle].pid[i];
 	}
-	mbox_list[handle].pid[GetCurrentPid()] = 0;
-	if (count == 1){ //If last process
+	if (count == 1 && mbox_list[handle].pid[GetCurrentPid()]==1){ //If last process
 		//Free stuff
 		while(!AQueueEmpty(&(mbox_list[handle].message_buffer))) {
 			l = AQueueFirst(&(mbox_list[handle].message_buffer));
@@ -128,6 +127,7 @@ int MboxClose(mbox_t handle) {
 		}
 		mbox_list[handle].inuse = 0;
 	}
+	mbox_list[handle].pid[GetCurrentPid()] = 0;
 	if (SYNC_FAIL == LockHandleRelease(mbox_list[handle].lock)){
 		return MBOX_FAIL;
 	}
