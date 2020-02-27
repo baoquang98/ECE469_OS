@@ -90,20 +90,22 @@ void main (int argc, char *argv[])
   // process_create with a NULL argument so that the operating system
   // knows how many arguments you are sending.
   for (i = 0; i < s2; i++) {
-  	process_create(S2_PRODUCE_FILE, s_procs_completed_str, s2_mbox_str, NULL);
+  	process_create(S2_PRODUCE_FILE, 0, 0, s_procs_completed_str, s2_mbox_str, NULL);
   }
+  
   for (i = 0; i < co; i++) {
-  	process_create(CO_PRODUCE_FILE, s_procs_completed_str, co_mbox_str, NULL);
+  	process_create(CO_PRODUCE_FILE, 0, 0, s_procs_completed_str, co_mbox_str, NULL);
   }
   for (i = 0; i < s2_split_count; i++) {
-  	process_create(S2_SPLIT_FILE, s_procs_completed_str, s2_mbox_str, s_mbox_str, NULL);
+  	process_create(S2_SPLIT_FILE, 0, 0, s_procs_completed_str, s2_mbox_str, s_mbox_str, NULL);
   }
   for (i = 0; i < co_split_count; i++) {
-  	process_create(CO_SPLIT_FILE, s_procs_completed_str, co_mbox_str, o2_mbox_str, NULL);
+  	process_create(CO_SPLIT_FILE, 0, 0, s_procs_completed_str, co_mbox_str, o2_mbox_str, NULL);
   }
   for (i = 0; i < so4_produce_count; i++) {
-  	process_create(SO4_PRODUCE_FILE, s_procs_completed_str, s_mbox_str, o2_mbox_str, NULL);
+  	process_create(SO4_PRODUCE_FILE, 0, 0, s_procs_completed_str, s_mbox_str, o2_mbox_str, NULL);
   }
+  
   // And finally, wait until all spawned processes have finished.
   if (sem_wait(s_procs_completed) != SYNC_SUCCESS) {
     Printf("Bad semaphore s_procs_completed (%d) in ", s_procs_completed); Printf(argv[0]); Printf("\n");

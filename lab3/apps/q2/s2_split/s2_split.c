@@ -8,8 +8,8 @@ void main (int argc, char *argv[])
   sem_t s_procs_completed; // Semaphore to signal the original process that we're done
   mbox_t mbox_s2; //mailbox for s2
   mbox_t mbox_s; //mailbox for s2
-  char buffer[sizeof("s2")];
-  char mes[] = "s";
+  char buffer[sizeof("s2") + 1];
+  char mes[] = "2s";
   int mes_recv;
   int i; 
   if (argc != 4) { 
@@ -21,15 +21,15 @@ void main (int argc, char *argv[])
   s_procs_completed = dstrtol(argv[1], NULL, 10); // The "10" means base 10
   mbox_s2 = dstrtol(argv[2], NULL, 10);
   mbox_s = dstrtol(argv[3], NULL, 10);
-
+  Printf("S2 split process: %d\n", getpid());
   // Now print a message to show that everything worked
   mbox_open(mbox_s2);
   for (i = 0; i < 1; i++) {
   	mes_recv = mbox_recv(mbox_s2, sizeof(buffer), (void *) buffer);
-  	if (mes_recv != sizeof(buffer)) {
-		Printf("Error receiving SO molecule number %d in process %d\n", i+1, getpid());
+  	/*if (mes_recv != sizeof(buffer)/sizeof(buffer[0])) {
+		Printf("Error receiving S2 molecule number %d in process %d\n", i+1, getpid());
 		Exit();
-	}
+	}*/
   }
   mbox_close(mbox_s2);
   
