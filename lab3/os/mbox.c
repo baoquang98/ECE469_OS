@@ -193,6 +193,9 @@ int MboxSend(mbox_t handle, int length, void* message) {
 int MboxRecv(mbox_t handle, int maxlength, void* message) {
 	//similar to MboxSend but get the first messages, return the number of bytes
 	//Need much error checking
+	if (maxlength > MBOX_MAX_MESSAGE_LENGTH){
+		return MBOX_FAIL;
+	}
 	mbox_message * mes;
 	Link * l;
 	LockHandleAcquire(mbox_list[handle].lock);
