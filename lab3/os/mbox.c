@@ -119,7 +119,7 @@ int MboxClose(mbox_t handle) {
 	for (i = 0; i < PROCESS_MAX_PROCS; i++) {
 		count += mbox_list[handle].pid[i];
 	}
-	if (count == 1 && mbox_list[handle].pid[GetCurrentPid()]==1){ //If last process
+	if (count == 1 && mbox_list[handle].pid[GetCurrentPid()] == 1){ //If last process
 		//Free stuff
 		while(!AQueueEmpty(&(mbox_list[handle].message_buffer))) {
 			l = AQueueFirst(&(mbox_list[handle].message_buffer));
