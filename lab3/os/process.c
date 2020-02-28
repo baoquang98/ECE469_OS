@@ -197,12 +197,19 @@ void ProcessSchedule () {
   PCB *pcb=NULL;
   int i=0;
   Link *l=NULL;
+  int run_time;
 
   dbprintf ('p', "Now entering ProcessSchedule (cur=0x%x, %d ready)\n",
 	    (int)currentPCB, AQueueLength (&runQueue));
   // The OS exits if there's no runnable process.  This is a feature, not a
   // bug.  An easy solution to allowing no runnable "user" processes is to
   // have an "idle" process that's simply an infinite loop.
+  run_time = ClkGetCurJiffies() - currentPCB->run_start;
+  currentPCB->total_time += run_time;
+  if (currentPCB->pinfo) {
+  	printf(PROCESS_CPUSTATS_FORMAT, GetCurrentPid(), currentPCB->total_time, currentPCB->pnice);
+  }
+  
   if (AQueueEmpty(&runQueue)) {
     if (!AQueueEmpty(&waitQueue)) {
       printf("FATAL ERROR: no runnable processes, but there are sleeping processes waiting!\n");
@@ -224,9 +231,9 @@ void ProcessSchedule () {
   // Now, run the one at the head of the queue.
   pcb = (PCB *)AQueueObject(AQueueFirst(&runQueue));
   currentPCB = pcb;
+  currentPCB->run_start = ClkGetCurJiffies();
   dbprintf ('p',"About to switch to PCB 0x%x,flags=0x%x @ 0x%x\n",
 	    (int)pcb, pcb->flags, (int)(pcb->sysStackPtr[PROCESS_STACK_IAR]));
-
   // Clean up zombie processes here.  This is done at interrupt time
   // because it can't be done while the process might still be running
   while (!AQueueEmpty(&zombieQueue)) {
@@ -414,6 +421,8 @@ int ProcessFork (VoidFunc func, uint32 param, int pnice, int pinfo,char *name, i
   // For system processes, though, all pages must be contiguous.
   // Of course, system processes probably need just a single page for
   // their stack, and don't need any code or data pages allocated for them.
+  pcb->pinfo = pinfo;
+  pcb->pnice = pnice;
   pcb->npages = 1;
   newPage = MemoryAllocPage ();
   if (newPage == 0) {
@@ -847,6 +856,9 @@ void main (int argc, char *argv[])
   KbdModuleInit ();
   dbprintf ('i', "After initializing keyboard.\n");
   ClkModuleInit();
+  dbprintf ('i', "After initializing clocks.\n");
+  MboxModuleInit();
+  dbprintf ('i', "After initializing mailboxes.\n");
   for (i = 0; i < 100; i++) {
     buf[i] = 'a';
   }

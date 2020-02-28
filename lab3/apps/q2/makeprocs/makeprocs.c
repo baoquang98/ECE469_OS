@@ -94,20 +94,20 @@ void main (int argc, char *argv[])
   // process_create with a NULL argument so that the operating system
   // knows how many arguments you are sending.
   for (i = 0; i < s2; i++) {
-  	process_create(S2_PRODUCE_FILE, 0, 0, s_procs_completed_str, s2_mbox_str, NULL);
+  	process_create(S2_PRODUCE_FILE, 0, 1, s_procs_completed_str, s2_mbox_str, NULL);
   }
   
   for (i = 0; i < co; i++) {
-  	process_create(CO_PRODUCE_FILE, 0, 0, s_procs_completed_str, co_mbox_str, NULL);
+  	process_create(CO_PRODUCE_FILE, 0, 1, s_procs_completed_str, co_mbox_str, NULL);
   }
   for (i = 0; i < s2_split_count; i++) {
-  	process_create(S2_SPLIT_FILE, 0, 0, s_procs_completed_str, s2_mbox_str, s_mbox_str, NULL);
+  	process_create(S2_SPLIT_FILE, 0, 1, s_procs_completed_str, s2_mbox_str, s_mbox_str, NULL);
   }
   for (i = 0; i < co_split_count; i++) {
-  	process_create(CO_SPLIT_FILE, 0, 0, s_procs_completed_str, co_mbox_str, o2_mbox_str, NULL);
+  	process_create(CO_SPLIT_FILE, 0, 1, s_procs_completed_str, co_mbox_str, o2_mbox_str, NULL);
   }
   for (i = 0; i < so4_produce_count; i++) {
-  	process_create(SO4_PRODUCE_FILE, 0, 0, s_procs_completed_str, s_mbox_str, o2_mbox_str, NULL);
+  	process_create(SO4_PRODUCE_FILE, 0, 1, s_procs_completed_str, s_mbox_str, o2_mbox_str, NULL);
   }
   
   // And finally, wait until all spawned processes have finished.
