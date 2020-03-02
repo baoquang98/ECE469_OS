@@ -155,7 +155,7 @@ int MboxSend(mbox_t handle, int length, void* message) {
  //acquire lock, check ur pid in the list of pid thats suppose to use the lock, check if the mbox is full, if full, wait on condition, copy the message to the buffer , put the messges in the queue, increment the total_message count, release lock
 	//Need much error checking
 	int i;
-	Link *l;
+	Link * l;
 	LockHandleAcquire(mbox_list[handle].lock);
 	if (!mbox_list[handle].pid[GetCurrentPid()]) {
 		return MBOX_FAIL;
@@ -202,11 +202,11 @@ int MboxSend(mbox_t handle, int length, void* message) {
 int MboxRecv(mbox_t handle, int maxlength, void* message) {
 	//similar to MboxSend but get the first messages, return the number of bytes
 	//Need much error checking
+	mbox_message * mes;
+	Link * l;
 	if (maxlength > MBOX_MAX_MESSAGE_LENGTH){
 		return MBOX_FAIL;
 	}
-	mbox_message * mes;
-	Link * l;
 	if (SYNC_FAIL==LockHandleAcquire(mbox_list[handle].lock)){
 		return MBOX_FAIL;
 	}
