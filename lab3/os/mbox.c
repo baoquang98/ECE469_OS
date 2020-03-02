@@ -60,7 +60,6 @@ mbox_t MboxCreate() {
 		return MBOX_FAIL;
 	}
 	mbox_list[handle].inuse = 1;
-	mbox_list[handle].head = NULL;
 	mbox_list[handle].lock = LockCreate();
 	mbox_list[handle].cond_full = CondCreate(mbox_list[handle].lock);
 	mbox_list[handle].cond_empty = CondCreate(mbox_list[handle].lock);
