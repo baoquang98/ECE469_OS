@@ -155,7 +155,7 @@ int MboxSend(mbox_t handle, int length, void* message) {
  //acquire lock, check ur pid in the list of pid thats suppose to use the lock, check if the mbox is full, if full, wait on condition, copy the message to the buffer , put the messges in the queue, increment the total_message count, release lock
 	//Need much error checking
 	int i;
-	Link * l;
+	Link *l;
 	LockHandleAcquire(mbox_list[handle].lock);
 	if (!mbox_list[handle].pid[GetCurrentPid()]) {
 		return MBOX_FAIL;
