@@ -27,7 +27,7 @@ typedef struct mbox {
 	lock_t lock;
 	cond_t cond_full;
 	cond_t cond_empty;
-	int pid[PROCESS_MAX_PROCS];
+	int pid[PROCESS_MAX_PROCS];	// processes currently using this mail box
 	int total_messages;
 } mbox;
 
