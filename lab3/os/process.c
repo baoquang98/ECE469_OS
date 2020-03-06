@@ -27,7 +27,7 @@ static Queue	freepcbs;
 
 // List of processes that are ready to run (ie, not waiting for something
 // to happen).
-static Queue	runQueue;
+static Queue	runQueue[PROCESS_MAX_QUEUES];
 
 // List of processes that are waiting for something to happen.  There's no
 // reason why this must be a single list; there could be many lists for many
@@ -45,12 +45,22 @@ static PCB	pcbs[PROCESS_MAX_PROCS];
 // String listing debugging options to print out.
 char	debugstr[200];
 
+// Last update of CPU priority decay in ProcessSchedule in Jiffies
+int last_update;
+
 int ProcessGetCodeInfo(const char *file, uint32 *startAddr, uint32 *codeStart, uint32 *codeSize,
                        uint32 *dataStart, uint32 *dataSize);
 int ProcessGetFromFile(int fd, unsigned char *buf, uint32 *addr, int max);
 uint32 get_argument(char *string);
 
-
+static inline int pow(int x, int power) {
+	int i;
+	int res = 1;
+	for (i = 0; i < power; i++) {
+		res *= x;
+	}
+	return res;
+}
 
 //----------------------------------------------------------------------
 //
@@ -66,7 +76,9 @@ void ProcessModuleInit () {
 
   dbprintf ('p', "ProcessModuleInit: function started\n");
   AQueueInit (&freepcbs);
-  AQueueInit(&runQueue);
+  for (i = 0; i < PROCESS_MAX_QUEUES; i++) {
+  	AQueueInit(&(runQueue[i]));
+  }
   AQueueInit (&waitQueue);
   AQueueInit (&zombieQueue);
   // For each PCB slot in the global pcbs array:
@@ -197,10 +209,19 @@ void ProcessSchedule () {
   PCB *pcb=NULL;
   int i=0;
   Link *l=NULL;
+  Link *curr=NULL;
+  Link *new=NULL;
   int run_time;
+  int sum_length = 0;
+  int priority;
+  int load = 1;
+  int queue_number;
+  for (i = 0; i < PROCESS_MAX_QUEUES; i++) {
+  	sum_length += AQueueLength(&runQueue[i]);		
+  }
 
   dbprintf ('p', "Now entering ProcessSchedule (cur=0x%x, %d ready)\n",
-	    (int)currentPCB, AQueueLength (&runQueue));
+	    (int)currentPCB, sum_length); //This is only showing the length of 
   // The OS exits if there's no runnable process.  This is a feature, not a
   // bug.  An easy solution to allowing no runnable "user" processes is to
   // have an "idle" process that's simply an infinite loop.
@@ -209,27 +230,66 @@ void ProcessSchedule () {
   if (currentPCB->pinfo) {
   	printf(PROCESS_CPUSTATS_FORMAT, GetCurrentPid(), currentPCB->total_time, currentPCB->pnice);
   }
+  currentPCB->estcpu++; //Process used up all of its alloted time, increment this value
+  priority = BASE_PRIORITY + currentPCB->estcpu/4 + 2*currentPCB->pnice;
+  //queue_number = priority / PRIORITIES_PER_QUEUE;
+  if (ClkGetCurJiffies() - last_update >= TIME_PER_CPU_WINDOW * CPU_WINDOWS_BETWEEN_DECAY) { //0.1 seconds or 10 quanta is 100 jiffies
+  	for (i = 0; i < PROCESS_MAX_QUEUES; i++) {
+		l = AQueueFirst(&(runQueue[i]));
+		while (l != NULL) {
+		    curr = l;
+			pcb = (PCB *) AQueueObject(l);
+			pcb->estcpu = (pcb->estcpu * (2*load) / (2*load + 1)) + pcb->pnice;
+			priority = BASE_PRIORITY + pcb->estcpu/4 + 2*pcb->pnice;
+			queue_number = priority / PRIORITIES_PER_QUEUE;
+			//new = AQueueAllocLink(pcb);
+			//AQueueInsertFirst(&runQueue[queue_number], new);
+			l = AQueueNext(l);
+			//AQueueRemove(&curr);
+		}
+	}
+	/*
+  	for (i = 0; i < PROCESS_MAX_QUEUES; i++) {
+		l = AQueueFirst(&(runQueue[i]));
+		printf("For prio Queue[%d]:", i);
+		while (l != NULL) {
+			pcb = (PCB *) AQueueObject(l);
+			printf(" %s", pcb->name)
+			l = AQueueNext(l);
+		}
+	}
+	printf("\n");
+	*/
+	last_update = ClkGetCurJiffies();
+  }
+
+
+  for (i = 0; i < PROCESS_MAX_QUEUES; i++) {
+  	if (!AQueueEmpty(&runQueue[i])) {
+		break;
+	}
+  } //Fine the highest priority queues with runable process
   
-  if (AQueueEmpty(&runQueue)) {
-    if (!AQueueEmpty(&waitQueue)) {
-      printf("FATAL ERROR: no runnable processes, but there are sleeping processes waiting!\n");
-      l = AQueueFirst(&waitQueue);
-      while (l != NULL) {
-        pcb = AQueueObject(l);
-        printf("Sleeping process %d: ", i++); printf("PID = %d\n", (int)(pcb - pcbs));
-        l = AQueueNext(l);
-      }
-      exitsim();
+  if (i >= PROCESS_MAX_QUEUES) {
+  	if (!AQueueEmpty(&waitQueue)) {
+      	printf("FATAL ERROR: no runnable processes, but there are sleeping processes waiting!\n");
+      	l = AQueueFirst(&waitQueue);
+      	while (l != NULL) {
+        	pcb = AQueueObject(l);
+        	printf("Sleeping process %d: ", i++); printf("PID = %d\n", (int)(pcb - pcbs));
+        	l = AQueueNext(l);
+      	}
+      	exitsim();
     }
     printf ("No runnable processes - exiting!\n");
     exitsim ();	// NEVER RETURNS
   }
 
   // Move the front of the queue to the end.  The running process was the one in front.
-  AQueueMoveAfter(&runQueue, AQueueLast(&runQueue), AQueueFirst(&runQueue));
+  AQueueMoveAfter(&(runQueue[i]), AQueueLast(&(runQueue[i])), AQueueFirst(&(runQueue[i])));
 
   // Now, run the one at the head of the queue.
-  pcb = (PCB *)AQueueObject(AQueueFirst(&runQueue));
+  pcb = (PCB *)AQueueObject(AQueueFirst(&runQueue[i]));
   currentPCB = pcb;
   currentPCB->run_start = ClkGetCurJiffies();
   dbprintf ('p',"About to switch to PCB 0x%x,flags=0x%x @ 0x%x\n",
@@ -265,6 +325,7 @@ void ProcessSuspend (PCB *suspend) {
   ASSERT (suspend->flags & PROCESS_STATUS_RUNNABLE, "Trying to suspend a non-running process!\n");
   ProcessSetStatus (suspend, PROCESS_STATUS_WAITING);
 
+  suspend->sleep_start = ClkGetCurJiffies();
   if (AQueueRemove(&(suspend->l)) != QUEUE_SUCCESS) {
     printf("FATAL ERROR: could not remove process from run Queue in ProcessSuspend!\n");
     exitsim();
@@ -294,10 +355,20 @@ void ProcessSuspend (PCB *suspend) {
 //
 //----------------------------------------------------------------------
 void ProcessWakeup (PCB *wakeup) {
+  int priority;
+  int queue_number;
+  int sleep_duration;
+  int num_window_asleep;
+  int load = 1;
   dbprintf ('p',"Waking up PID %d.\n", (int)(wakeup - pcbs));
   // Make sure it's not yet a runnable process.
   ASSERT (wakeup->flags & PROCESS_STATUS_WAITING, "Trying to wake up a non-sleeping process!\n");
   ProcessSetStatus (wakeup, PROCESS_STATUS_RUNNABLE);
+  sleep_duration = ClkGetCurJiffies() - wakeup->sleep_start;
+  if (sleep_duration >= TIME_PER_CPU_WINDOW * CPU_WINDOWS_BETWEEN_DECAY) {
+  	num_window_asleep = sleep_duration / TIME_PER_CPU_WINDOW * CPU_WINDOWS_BETWEEN_DECAY;
+    wakeup->estcpu = wakeup->estcpu * pow(((2 * load)/(2 * load + 1)), num_window_asleep);
+  }
   if (AQueueRemove(&(wakeup->l)) != QUEUE_SUCCESS) {
     printf("FATAL ERROR: could not remove wakeup PCB from waitQueue in ProcessWakeup!\n");
     exitsim();
@@ -306,8 +377,10 @@ void ProcessWakeup (PCB *wakeup) {
     printf("FATAL ERROR: could not get link for wakeup PCB in ProcessWakeup!\n");
     exitsim();
   }
-  if (AQueueInsertLast(&runQueue, wakeup->l) != QUEUE_SUCCESS) {
-    printf("FATAL ERROR: could not insert link into runQueue in ProcessWakeup!\n");
+  priority = BASE_PRIORITY + wakeup->estcpu/4 + 2*wakeup->pnice;
+  queue_number = priority / PRIORITIES_PER_QUEUE;
+  if (AQueueInsertLast(&(runQueue[queue_number]), wakeup->l) != QUEUE_SUCCESS) {
+    printf("FATAL ERROR: could not insert link into runQueue %d in ProcessWakeup!\n", queue_number);
     exitsim();
   }
 }
@@ -339,7 +412,7 @@ void ProcessDestroy (PCB *pcb) {
     exitsim();
   }
   if (AQueueInsertFirst(&zombieQueue, pcb->l) != QUEUE_SUCCESS) {
-    printf("FATAL ERROR: could not insert link into runQueue in ProcessWakeup!\n");
+    printf("FATAL ERROR: could not insert link into zombieQueue in ProcessWakeup!\n");
     exitsim();
   }
   dbprintf ('p', "ProcessDestroy (%d): function complete\n", GetCurrentPid());
@@ -383,7 +456,8 @@ int ProcessFork (VoidFunc func, uint32 param, int pnice, int pinfo,char *name, i
   unsigned char buf[100];
   uint32 dum[MAX_ARGS+8], count, offset;
   char *str;
-
+  int priority;
+  int queue_number;
   dbprintf ('p', "ProcessFork (%d): function started\n", GetCurrentPid());
   intrs = DisableIntrs ();
   dbprintf ('I', "Old interrupt value was 0x%x.\n", intrs);
@@ -423,6 +497,7 @@ int ProcessFork (VoidFunc func, uint32 param, int pnice, int pinfo,char *name, i
   // their stack, and don't need any code or data pages allocated for them.
   pcb->pinfo = pinfo;
   pcb->pnice = pnice;
+  pcb->estcpu = 0;
   pcb->npages = 1;
   newPage = MemoryAllocPage ();
   if (newPage == 0) {
@@ -563,8 +638,10 @@ int ProcessFork (VoidFunc func, uint32 param, int pnice, int pinfo,char *name, i
     printf("FATAL ERROR: could not get link for forked PCB in ProcessFork!\n");
     exitsim();
   }
-  if (AQueueInsertLast(&runQueue, pcb->l) != QUEUE_SUCCESS) {
-    printf("FATAL ERROR: could not insert link into runQueue in ProcessFork!\n");
+  priority = BASE_PRIORITY + pcb->estcpu/4 + 2*pcb->pnice;
+  queue_number = priority / PRIORITIES_PER_QUEUE;
+  if (AQueueInsertLast(&runQueue[queue_number], pcb->l) != QUEUE_SUCCESS) {
+    printf("FATAL ERROR: could not insert link into runQueue %d in ProcessFork!\n", queue_number);
     exitsim();
   }
   RestoreIntrs (intrs);

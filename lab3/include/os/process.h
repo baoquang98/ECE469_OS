@@ -17,6 +17,7 @@
 #define PROCESS_SUCCESS 1
 
 #define	PROCESS_MAX_PROCS	32	// Maximum number of active processes
+#define PROCESS_MAX_QUEUES 32
 
 #define	PROCESS_INIT_ISR_SYS	0x140	// Initial status reg value for system processes
 #define	PROCESS_INIT_ISR_USER	0x100	// Initial status reg value for user processes
@@ -30,6 +31,10 @@
 #define	PROCESS_TYPE_SYSTEM	0x100
 #define	PROCESS_TYPE_USER	0x200
 
+#define PRIORITIES_PER_QUEUE 4
+#define BASE_PRIORITY 50
+#define TIME_PER_CPU_WINDOW 10
+#define CPU_WINDOWS_BETWEEN_DECAY 10
 typedef	void (*VoidFunc)();
 
 // Process control block
@@ -43,10 +48,12 @@ typedef struct PCB {
   int		npages;		// Number of pages allocated to this process
   Link		*l;		// Used for keeping PCB in queues
 
-  int           pinfo;          // Turns on printing of runtime stats
-  int           pnice;          // Used in priority calculation
-  int		total_time;
-  int 		run_start;
+  int   pinfo;          // Turns on printing of runtime stats
+  int   pnice;          // Used in priority calculation
+  int	total_time;
+  int 	run_start;
+  int	sleep_start;
+  int	estcpu;
 } PCB;
 
 // Offsets of various registers from the stack pointer in the register
