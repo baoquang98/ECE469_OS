@@ -250,6 +250,7 @@ int MboxRecv(mbox_t handle, int maxlength, void* message) {
 	bcopy(mes->buffer, message, mes->size);
 	mes->inuse = 0;
 	AQueueRemove(&l);
+	mbox_list[handle].total_messages--;
 
 	if (SYNC_FAIL == LockHandleRelease(mbox_list[handle].lock)){
 		return MBOX_FAIL;
