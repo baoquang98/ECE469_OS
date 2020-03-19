@@ -146,10 +146,8 @@ int MboxClose(mbox_t handle) {
 		
 		intrval = DisableIntrs();
 		locks[mbox_list[handle].lock].inuse = 0;
+  		RestoreIntrs(intrval);
     }
-  }
-  RestoreIntrs(intrval);
-	}
 
 	if (SYNC_FAIL == LockHandleRelease(mbox_list[handle].lock)){
 		return MBOX_FAIL;
