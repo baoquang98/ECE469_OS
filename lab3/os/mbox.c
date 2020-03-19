@@ -60,6 +60,11 @@ mbox_t MboxCreate() {
 		return MBOX_FAIL;
 	}
 	mbox_list[handle].inuse = 1;
+	/*TODO
+	They updated the website:
+	Be aware if you allocate a new lock in mbox_create(): you may run out of available locks with 
+	repeated invocations to mbox_create()
+	*/
 	mbox_list[handle].lock = LockCreate();
 	mbox_list[handle].cond_full = CondCreate(mbox_list[handle].lock);
 	mbox_list[handle].cond_empty = CondCreate(mbox_list[handle].lock);
@@ -167,7 +172,7 @@ int MboxSend(mbox_t handle, int length, void* message) {
 		return MBOX_FAIL;
 	}
 
-	if (mbox_list[handle].total_messages >= MBOX_MAX_BUFFERS_PER_MBOX) {
+	if (mbox_list[handle].total_messages >= MBOX_MAX_BUFFERS_PER_MBOX) {	// wait till the mail box is not full
 		CondHandleWait(mbox_list[handle].cond_full);
 	}
 	for (i = 0; i < MBOX_NUM_BUFFERS; i++) {
