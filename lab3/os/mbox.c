@@ -198,10 +198,10 @@ int MboxSend(mbox_t handle, int length, void* message) {
 	l = AQueueAllocLink(&(mbox_messages_list[i]));
 	AQueueInsertLast(&(mbox_list[handle].message_buffer),l);
 
+	CondHandleSignal(mbox_list[handle].cond_empty);
 	if (SYNC_FAIL == LockHandleRelease(mbox_list[handle].lock)){
 		return MBOX_FAIL;
 	}
-	CondHandleSignal(mbox_list[handle].cond_empty);
 
  return MBOX_SUCCESS;
 }
@@ -238,7 +238,7 @@ int MboxRecv(mbox_t handle, int maxlength, void* message) {
 		return MBOX_FAIL;
 	}
 	if (mbox_list[handle].total_messages == 0) {
-		CondHandleWait(mbox_list[handle].cond_empty);
+		CondHandleWait(&(mbox_list[handle].cond_empty));
 	}
 
 	l = AQueueFirst(&(mbox_list[handle].message_buffer));
@@ -253,10 +253,10 @@ int MboxRecv(mbox_t handle, int maxlength, void* message) {
 	AQueueRemove(&l);
 	mbox_list[handle].total_messages--;
 
+	CondHandleSignal(mbox_list[handle].cond_full);
 	if (SYNC_FAIL == LockHandleRelease(mbox_list[handle].lock)){
 		return MBOX_FAIL;
 	}
-	CondHandleSignal(mbox_list[handle].cond_full);
   
   return mes->size;
 }
