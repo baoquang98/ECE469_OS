@@ -53,7 +53,8 @@ typedef struct PCB {
   int	total_time;
   int 	run_start;
   int	sleep_start;
-  int	estcpu;
+  int 	priority;
+  float	estcpu;
 } PCB;
 
 // Offsets of various registers from the stack pointer in the register

@@ -211,15 +211,16 @@ void ProcessSetResult (PCB * pcb, uint32 result) {
 //----------------------------------------------------------------------
 void ProcessSchedule () {
   PCB *pcb=NULL;
-  int i=0;
+  int i,j=0;
   Link *l=NULL;
-  Link *curr=NULL;
-  Link *new=NULL;
+  //Link *curr=NULL;
+  Link *temp=NULL;
   int run_time;
   int sum_length = 0;
-  int priority;
   int load = 1;
   int queue_number;
+  int length;
+  int intrs;
   for (i = 0; i < PROCESS_MAX_QUEUES; i++) {
   	sum_length += AQueueLength(&runQueue[i]);		
   }
@@ -229,45 +230,51 @@ void ProcessSchedule () {
   // The OS exits if there's no runnable process.  This is a feature, not a
   // bug.  An easy solution to allowing no runnable "user" processes is to
   // have an "idle" process that's simply an infinite loop.
-  run_time = ClkGetCurJiffies() - currentPCB->run_start;
+  run_time = ClkGetCurJiffies() - currentPCB->run_start; //Runtime of current process of the most recent runing instance
   currentPCB->total_time += run_time;
   if (currentPCB->pinfo) {
   	printf(PROCESS_CPUSTATS_FORMAT, GetCurrentPid(), currentPCB->total_time, currentPCB->pnice);
   }
-  currentPCB->estcpu++; //Process used up all of its alloted time, increment this value
-  priority = BASE_PRIORITY + currentPCB->estcpu/4 + 2*currentPCB->pnice;
-  //queue_number = priority / PRIORITIES_PER_QUEUE;
+
+  intrs = DisableIntrs();
+  
+  if (run_time >= CLOCK_PROCESS_JIFFIES) {
+  	currentPCB->estcpu += 1.0; //Process used up all of its alloted time, increment this value
+  	currentPCB->priority = BASE_PRIORITY + currentPCB->estcpu/4 + 2*currentPCB->pnice;
+  }
+  
   if (ClkGetCurJiffies() - last_update >= TIME_PER_CPU_WINDOW * CPU_WINDOWS_BETWEEN_DECAY) { //0.1 seconds or 10 quanta is 100 jiffies
   	for (i = 0; i < PROCESS_MAX_QUEUES; i++) {
 		l = AQueueFirst(&(runQueue[i]));
 		while (l != NULL) {
-		    curr = l;
+		    //curr = l;
 			pcb = (PCB *) AQueueObject(l);
 			pcb->estcpu = (pcb->estcpu * (2*load) / (2*load + 1)) + pcb->pnice;
-			priority = BASE_PRIORITY + pcb->estcpu/4 + 2*pcb->pnice;
-			queue_number = priority / PRIORITIES_PER_QUEUE;
-			//new = AQueueAllocLink(pcb);
-			//AQueueInsertFirst(&runQueue[queue_number], new);
-			l = AQueueNext(l);
-			//AQueueRemove(&curr);
-		}
-	}
-	/*
-  	for (i = 0; i < PROCESS_MAX_QUEUES; i++) {
-		l = AQueueFirst(&(runQueue[i]));
-		printf("For prio Queue[%d]:", i);
-		while (l != NULL) {
-			pcb = (PCB *) AQueueObject(l);
-			printf(" %s", pcb->name)
+			pcb->priority = BASE_PRIORITY + pcb->estcpu/4 + 2*pcb->pnice;
 			l = AQueueNext(l);
 		}
-	}
-	printf("\n");
-	*/
-	last_update = ClkGetCurJiffies();
+	} //Decay all the priority
+    last_update = ClkGetCurJiffies();
   }
+  	for (i = 0; i < PROCESS_MAX_QUEUES; i++) {
+		temp = AQueueFirst(&(runQueue[i]));
+		length = AQueueLength(&(runQueue[i]));
+		for (j = 0; j < length; j++) {
+			l = temp;
+			temp = AQueueNext(temp);
+			pcb = (PCB *) AQueueObject(l);
+			queue_number = pcb->priority / PRIORITIES_PER_QUEUE;
+		
+			AQueueRemove(&(pcb->l));
+			pcb->l = AQueueAllocLink(pcb);
+		
+			AQueueInsertLast(&runQueue[queue_number], pcb->l);
+		}
+  	} //Put all the prcess im the correct queues
+  RestoreIntrs(intrs);
 
-
+  
+  
   for (i = 0; i < PROCESS_MAX_QUEUES; i++) {
   	if (!AQueueEmpty(&runQueue[i])) {
 		break;
