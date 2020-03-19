@@ -238,7 +238,10 @@ int MboxRecv(mbox_t handle, int maxlength, void* message) {
 	}
 
 	l = AQueueFirst(&(mbox_list[handle].message_buffer));
-	mes = (mbox_message *) l->object;
+	mes = (mbox_message *) l->object;	// read the message
+	if (maxlength < mes->size) {
+		return MBOX_FAIL;
+	}
 
 	bcopy(message, mes->buffer, mes->size);
 	mes->inuse = 0;
