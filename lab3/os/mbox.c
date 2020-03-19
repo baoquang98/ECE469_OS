@@ -283,14 +283,14 @@ int MboxCloseAllByPid(int pid) {
 				if (mbox_list[handle].pid[i]) 
 					count++;
 			}
-			if (count == 1 && mbox_list[handle].pid[GetCurrentPid()]==1){ // If last process and if it is the current process
+			if (count == 1 && mbox_list[handle].pid[pid]==1){ // If last process and if it is the current process
 				//Free stuff
 				while(!AQueueEmpty(&(mbox_list[handle].message_buffer))) {
 					l = AQueueFirst(&(mbox_list[handle].message_buffer));
 					AQueueRemove(&l);
 				}
 				mbox_list[handle].inuse = 0;
-				mbox_list[handle].pid[GetCurrentPid()] = 0;
+				mbox_list[handle].pid[pid] = 0;
 			}
 			if (SYNC_FAIL == LockHandleRelease(mbox_list[handle].lock)){
 				return MBOX_FAIL;
