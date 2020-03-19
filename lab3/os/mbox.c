@@ -66,11 +66,11 @@ mbox_t MboxCreate() {
 		// associated lock with the mail box.
 		// we only use this because there is no way to destroy the lock once created.
 		mbox_list[handle].lock = LockCreate();
+		mbox_list[handle].cond_full = CondCreate(mbox_list[handle].lock);
+		mbox_list[handle].cond_empty = CondCreate(mbox_list[handle].lock);
 		mbox_list[handle].lock_allocated = 1;
 	}
 	mbox_list[handle].total_messages = 0;
-	mbox_list[handle].cond_full = CondCreate(mbox_list[handle].lock);
-	mbox_list[handle].cond_empty = CondCreate(mbox_list[handle].lock);
   	//enable interupt
   return handle;
 }
@@ -239,7 +239,7 @@ int MboxRecv(mbox_t handle, int maxlength, void* message) {
 		return MBOX_FAIL;
 	}
 	while (mbox_list[handle].total_messages == 0) {
-		CondHandleWait(&(mbox_list[handle].cond_empty));
+		CondHandleWait(mbox_list[handle].cond_empty);
 	}
 
 	l = AQueueFirst(&(mbox_list[handle].message_buffer));
@@ -253,6 +253,7 @@ int MboxRecv(mbox_t handle, int maxlength, void* message) {
 	mes->inuse = 0;
 	AQueueRemove(&l);
 	mbox_list[handle].total_messages--;
+
 	if (mbox_list[handle].total_messages < MBOX_MAX_BUFFERS_PER_MBOX){
 		CondHandleSignal(mbox_list[handle].cond_full);
 	}
