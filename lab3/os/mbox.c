@@ -129,12 +129,15 @@ int MboxClose(mbox_t handle) {
 	if (SYNC_FAIL == LockHandleAcquire(mbox_list[handle].lock)){
 		return MBOX_FAIL;
 	}
+	if (mbox_list[handle].pid[GetCurrentPid()]==0) {
+		return MBOX_FAIL;
+	}
 
 	for (i = 0; i < PROCESS_MAX_PROCS; i++) {
 		if (mbox_list[handle].pid[i]) 
 			count++;
 	}
-	if (count == 1 && mbox_list[handle].pid[GetCurrentPid()]==1){ // If last process and if it is the current process
+	if (count == 1){ // If last process and if it is the current process
 		//Free stuff
 		while(!AQueueEmpty(&(mbox_list[handle].message_buffer))) {
 			l = AQueueFirst(&(mbox_list[handle].message_buffer));
