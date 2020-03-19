@@ -92,8 +92,8 @@ int MboxOpen(mbox_t handle) {
 		printf("Mbox is not inuse, what are u doin process %d\n", GetCurrentPid());
 		return MBOX_FAIL;
 	}
-	//set the pid flag to be 1
 
+	//set the pid flag to be 1
 	if (SYNC_FAIL == LockHandleAcquire(mbox_list[handle].lock)){
 		return MBOX_FAIL;
 	}
@@ -122,22 +122,35 @@ int MboxClose(mbox_t handle) {
 	int i = 0;
 	int count = 0;
 	Link *l;
+	int pid = GetCurrentPid();
+	uint32 intrval
+	// atomic on lock to close
 	if (SYNC_FAIL == LockHandleAcquire(mbox_list[handle].lock)){
 		return MBOX_FAIL;
 	}
+
 	for (i = 0; i < PROCESS_MAX_PROCS; i++) {
 		if (mbox_list[handle].pid[i]) 
 			count++;
 	}
-	mbox_list[handle].pid[GetCurrentPid()] = 0;
-	if (count == 1){ //If last process
+	if (count == 1 && mbox_list[handle].pid[pid]==1){ // If last process and if it is the current process
 		//Free stuff
 		while(!AQueueEmpty(&(mbox_list[handle].message_buffer))) {
 			l = AQueueFirst(&(mbox_list[handle].message_buffer));
 			AQueueRemove(&l);
 		}
 		mbox_list[handle].inuse = 0;
+		mbox_list[handle].pid[pid] = 0;
+
+		// We might again need to deallocate the locks that is created in mbox_create
+		
+		intrval = DisableIntrs();
+		locks[mbox_list[handle].lock].inuse = 0;
+    }
+  }
+  RestoreIntrs(intrval);
 	}
+
 	if (SYNC_FAIL == LockHandleRelease(mbox_list[handle].lock)){
 		return MBOX_FAIL;
 	}
