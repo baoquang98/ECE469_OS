@@ -133,7 +133,11 @@ void ProcessFreeResources (PCB *pcb) {
   // Your code for closing any open mailbox connections
   // that a dying process might have goes here.
   //-----------------------------------------------------
-  MboxCloseAllByPid(GetPidFromAddress(pcb));
+  ;
+  if (MboxCloseAllByPid(GetPidFromAddress(pcb)) != MBOX_SUCCESS) {
+    printf("FATAL ERROR: could not close mail box by the process\n");
+    exitsim();
+  }
 
   // Allocate a new link for this pcb on the freepcbs queue
   if ((pcb->l = AQueueAllocLink(pcb)) == NULL) {
