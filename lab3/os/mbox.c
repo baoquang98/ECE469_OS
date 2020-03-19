@@ -184,7 +184,7 @@ int MboxSend(mbox_t handle, int length, void* message) {
 	if (SYNC_FAIL == LockHandleAcquire(mbox_list[handle].lock)){
 		return MBOX_FAIL;
 	}
-
+	mbox_list[handle].total_messages++;
 
 
 	for (i = 0; i < MBOX_NUM_BUFFERS; i++) {
@@ -195,7 +195,6 @@ int MboxSend(mbox_t handle, int length, void* message) {
 	mbox_messages_list[i].inuse = 1;
 	bcopy(message, mbox_messages_list[i].buffer, length);
 	mbox_messages_list[i].size = length;
-	mbox_list[handle].total_messages++;
 
 	l = AQueueAllocLink(&(mbox_messages_list[i]));
 	AQueueInsertLast(&(mbox_list[handle].message_buffer),l);
@@ -241,6 +240,7 @@ int MboxRecv(mbox_t handle, int maxlength, void* message) {
 	if (SYNC_FAIL==LockHandleAcquire(mbox_list[handle].lock)){
 		return MBOX_FAIL;
 	}
+	mbox_list[handle].total_messages--;
 
 	l = AQueueFirst(&(mbox_list[handle].message_buffer));
 	mes = (mbox_message *) l->object;	// read the message
@@ -252,7 +252,6 @@ int MboxRecv(mbox_t handle, int maxlength, void* message) {
 	bcopy(mes->buffer, message, mes->size);
 	mes->inuse = 0;
 	AQueueRemove(&l);
-	mbox_list[handle].total_messages--;
 
 	if (SYNC_FAIL == LockHandleRelease(mbox_list[handle].lock)){
 		return MBOX_FAIL;
