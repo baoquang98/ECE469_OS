@@ -26,7 +26,7 @@ void MboxModuleInit() {
 	for (i = 0; i < MBOX_NUM_MBOXES; i++) {
 		mbox_list[i].inuse = 0;
 		mbox_list[i].lock_allocated = 0;
-		mbox_list[i].total_messages = 0;
+		// mbox_list[i].total_messages = 0; should be done in mbox_create
 		AQueueInit(&(mbox_list[i].message_buffer));
 		for (j = 0; j < PROCESS_MAX_PROCS; j++) {
 			mbox_list[i].pid[j] = 0;
@@ -62,10 +62,13 @@ mbox_t MboxCreate() {
 	}
 	mbox_list[handle].inuse = 1;
 	if (mbox_list[handle].lock_allocated == 0) { 
-		// only create the lock if there is no associated lock with the mail box.
+		// only create the lock if there is no 
+		// associated lock with the mail box.
+		// we only use this because there is no way to destroy the lock once created.
 		mbox_list[handle].lock = LockCreate();
 		mbox_list[handle].lock_allocated = 1;
 	}
+	mbox_list[handle].total_messages = 0;
 	mbox_list[handle].cond_full = CondCreate(mbox_list[handle].lock);
 	mbox_list[handle].cond_empty = CondCreate(mbox_list[handle].lock);
   	//enable interupt
@@ -97,7 +100,7 @@ int MboxOpen(mbox_t handle) {
 	if (SYNC_FAIL == LockHandleAcquire(mbox_list[handle].lock)){
 		return MBOX_FAIL;
 	}
-	mbox_list[handle].pid[GetCurrentPid()] = 1;
+	mbox_list[handle].pid[GetCurrentPid()] = 1;	// openning
 	if (SYNC_FAIL == LockHandleRelease(mbox_list[handle].lock)){
 		return MBOX_FAIL;
 	}
