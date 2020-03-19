@@ -32,6 +32,7 @@ void main (int argc, char *argv[])
   }
   mbox_close(mbox_s);
   mbox_open(mbox_o2);
+  Printf("S + 2O2 -> SO4, pid: %d\n", getpid());
   for (i = 0; i < 2; i++) {
   	mes_recv = mbox_recv(mbox_o2, sizeof(buffer_o2), (void *) buffer_o2);
   	/*if (mes_recv != sizeof(buffer_o2)) {
@@ -41,7 +42,6 @@ void main (int argc, char *argv[])
   }
   mbox_close(mbox_o2);
   
-  Printf("S + 2O2 -> SO4, pid: %d\n", getpid());
   // Signal the semaphore to tell the original process that we're done
   if(sem_signal(s_procs_completed) != SYNC_SUCCESS) {
     Printf("Bad semaphore s_procs_completed (%d) in ", s_procs_completed); Printf(argv[0]); Printf(", exiting...\n");
