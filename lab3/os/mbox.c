@@ -177,7 +177,7 @@ int MboxSend(mbox_t handle, int length, void* message) {
 	if (!mbox_list[handle].pid[GetCurrentPid()]) {
 		return MBOX_FAIL;
 	}
-	while (mbox_list[handle].total_messages >= MBOX_MAX_BUFFERS_PER_MBOX) {	// wait till the mail box is not full
+	if (mbox_list[handle].total_messages >= MBOX_MAX_BUFFERS_PER_MBOX) {	// wait till the mail box is not full
 		CondHandleWait(&(mbox_list[handle].cond_full));
 	}
 
@@ -231,7 +231,7 @@ int MboxRecv(mbox_t handle, int maxlength, void* message) {
 	if (maxlength > MBOX_MAX_MESSAGE_LENGTH){
 		return MBOX_FAIL;
 	}
-	while (!mbox_list[handle].pid[GetCurrentPid()]) {
+	if (!mbox_list[handle].pid[GetCurrentPid()]) {
 		return MBOX_FAIL;
 	}
 	while (mbox_list[handle].total_messages == 0) {
