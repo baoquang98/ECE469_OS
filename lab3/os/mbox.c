@@ -185,8 +185,6 @@ int MboxSend(mbox_t handle, int length, void* message) {
 		return MBOX_FAIL;
 	}
 
-
-
 	for (i = 0; i < MBOX_NUM_BUFFERS; i++) {
 		if (!mbox_messages_list[i].inuse) {
 			break;
