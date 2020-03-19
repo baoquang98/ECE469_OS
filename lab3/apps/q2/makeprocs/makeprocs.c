@@ -5,8 +5,8 @@
 
 void main (int argc, char *argv[])
 {
-  int s2;               // Used to store number of s2 to create
-  int co;               // Used to store number of SO4 to create
+  int s2;               // Used to store number of s2 to get
+  int co;               // Used to store number of SO4 to get
   int s;
   int o2;
   int s2_split_count;               // Used to store number of reaction 1
@@ -31,7 +31,7 @@ void main (int argc, char *argv[])
   char o2_mbox_str[10]; 	// Used as command-line argument to pass page_mapped handle to new processes
 	
   if (argc != 3) {
-    Printf("Usage: "); Printf(argv[0]); Printf(" <number of H20 molecules> <number of SO4 molecules>\n");
+    Printf("Usage: "); Printf(argv[0]); Printf(" <number of S2 molecules> <number of CO molecules>\n");
     Exit();
   }
 
@@ -47,7 +47,7 @@ void main (int argc, char *argv[])
   
   (s < o2/2) ? (so4_produce_count = s) : (so4_produce_count = o2/2);
   
-  numprocs = s2 + co + s2_split_count + co_split_count + so4_produce_count; //2 injection for H20 and SO4, 3 consumptions which maps to 3 reactions
+  numprocs = s2 + co + s2_split_count + co_split_count + so4_produce_count; //2 injection for S2 and CO, 3 consumptions which maps to 3 reactions
   Printf("Creating %d processes\n", numprocs);
 
 
@@ -61,7 +61,8 @@ void main (int argc, char *argv[])
     Printf("Bad sem_create in "); Printf(argv[0]); Printf("\n");
     Exit();
   }
-  if ((s2_mbox = mbox_create()) == MBOX_FAIL) { //2 h2o needed for reaction
+  // injection boxes
+  if ((s2_mbox = mbox_create()) == MBOX_FAIL) { 
     Printf("Bad sem_create in "); Printf(argv[0]); Printf("\n");
     Exit();
   }
@@ -69,6 +70,7 @@ void main (int argc, char *argv[])
     Printf("Bad sem_create in "); Printf(argv[0]); Printf("\n");
     Exit();
   }
+  // reaction boxes
   if ((s_mbox = mbox_create()) == MBOX_FAIL) {
     Printf("Bad sem_create in "); Printf(argv[0]); Printf("\n");
     Exit();

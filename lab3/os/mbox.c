@@ -144,8 +144,8 @@ int MboxClose(mbox_t handle) {
 			AQueueRemove(&l);
 		}
 		mbox_list[handle].inuse = 0;
-		mbox_list[handle].pid[GetCurrentPid()] = 0;
     }
+	mbox_list[handle].pid[GetCurrentPid()] = 0;
 
 	if (SYNC_FAIL == LockHandleRelease(mbox_list[handle].lock)){
 		return MBOX_FAIL;
@@ -306,8 +306,8 @@ int MboxCloseAllByPid(int pid) {
 					AQueueRemove(&l);
 				}
 				mbox_list[handle].inuse = 0;
-				mbox_list[handle].pid[pid] = 0;
 			}
+			mbox_list[handle].pid[pid] = 0;
 			if (SYNC_FAIL == LockHandleRelease(mbox_list[handle].lock)){
 				return MBOX_FAIL;
 			}
