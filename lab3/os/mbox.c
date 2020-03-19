@@ -174,6 +174,9 @@ int MboxSend(mbox_t handle, int length, void* message) {
 	//Need much error checking
 	int i;
 	Link * l;
+	if (mbox_list[handle].total_messages >= MBOX_MAX_BUFFERS_PER_MBOX) {	// wait till the mail box is not full
+		CondHandleWait(mbox_list[handle].cond_full);
+	}
 	if (SYNC_FAIL == LockHandleAcquire(mbox_list[handle].lock)){
 		return MBOX_FAIL;
 	}
@@ -181,9 +184,7 @@ int MboxSend(mbox_t handle, int length, void* message) {
 		return MBOX_FAIL;
 	}
 
-	if (mbox_list[handle].total_messages >= MBOX_MAX_BUFFERS_PER_MBOX) {	// wait till the mail box is not full
-		CondHandleWait(mbox_list[handle].cond_full);
-	}
+
 	for (i = 0; i < MBOX_NUM_BUFFERS; i++) {
 		if (!mbox_messages_list[i].inuse) {
 			break;
@@ -229,13 +230,12 @@ int MboxRecv(mbox_t handle, int maxlength, void* message) {
 	if (maxlength > MBOX_MAX_MESSAGE_LENGTH){
 		return MBOX_FAIL;
 	}
-	if (SYNC_FAIL==LockHandleAcquire(mbox_list[handle].lock)){
-		return MBOX_FAIL;
-	}
 	if (!mbox_list[handle].pid[GetCurrentPid()]) {
 		return MBOX_FAIL;
 	}
-
+	if (SYNC_FAIL==LockHandleAcquire(mbox_list[handle].lock)){
+		return MBOX_FAIL;
+	}
 	if (mbox_list[handle].total_messages == 0) {
 		CondHandleWait(mbox_list[handle].cond_empty);
 	}
