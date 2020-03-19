@@ -261,7 +261,7 @@ int MboxRecv(mbox_t handle, int maxlength, void* message) {
 	mbox_list[handle].total_messages--;
 
 	if (mbox_list[handle].total_messages < MBOX_MAX_BUFFERS_PER_MBOX){
-		if (SYCN_FAIL == CondHandleSignal(mbox_list[handle].cond_full)){
+		if (SYNC_FAIL == CondHandleSignal(mbox_list[handle].cond_full)){
 			return MBOX_FAIL;
 		};
 	}
