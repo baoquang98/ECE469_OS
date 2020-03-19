@@ -25,6 +25,7 @@ void MboxModuleInit() {
 	int j;
 	for (i = 0; i < MBOX_NUM_MBOXES; i++) {
 		mbox_list[i].inuse = 0;
+		mbox_list[i].lock_allocated = 0;
 		mbox_list[i].total_messages = 0;
 		AQueueInit(&(mbox_list[i].message_buffer));
 		for (j = 0; j < PROCESS_MAX_PROCS; j++) {
@@ -60,12 +61,11 @@ mbox_t MboxCreate() {
 		return MBOX_FAIL;
 	}
 	mbox_list[handle].inuse = 1;
-	/*TODO
-	They updated the website:
-	Be aware if you allocate a new lock in mbox_create(): you may run out of available locks with 
-	repeated invocations to mbox_create()
-	*/
-	mbox_list[handle].lock = LockCreate();
+	if (mbox_list[handle].lock_allocated == 0) { 
+		// only create the lock if there is no associated lock with the mail box.
+		mbox_list[handle].lock = LockCreate();
+		mbox_list[handle].lock_allocated = 1;
+	}
 	mbox_list[handle].cond_full = CondCreate(mbox_list[handle].lock);
 	mbox_list[handle].cond_empty = CondCreate(mbox_list[handle].lock);
   	//enable interupt
@@ -123,7 +123,6 @@ int MboxClose(mbox_t handle) {
 	int count = 0;
 	Link *l;
 	int pid = GetCurrentPid();
-	uint32 intrval
 	// atomic on lock to close
 	if (SYNC_FAIL == LockHandleAcquire(mbox_list[handle].lock)){
 		return MBOX_FAIL;
@@ -141,12 +140,6 @@ int MboxClose(mbox_t handle) {
 		}
 		mbox_list[handle].inuse = 0;
 		mbox_list[handle].pid[pid] = 0;
-
-		// We might again need to deallocate the locks that is created in mbox_create
-		
-		intrval = DisableIntrs();
-		locks[mbox_list[handle].lock].inuse = 0;
-  		RestoreIntrs(intrval);
     }
 
 	if (SYNC_FAIL == LockHandleRelease(mbox_list[handle].lock)){
