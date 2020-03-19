@@ -247,7 +247,7 @@ int MboxRecv(mbox_t handle, int maxlength, void* message) {
 		return MBOX_FAIL;
 	}
 
-	bcopy(message, mes->buffer, mes->size);
+	bcopy(mes->buffer, message, mes->size);
 	mes->inuse = 0;
 	AQueueRemove(&l);
 
