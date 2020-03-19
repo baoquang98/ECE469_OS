@@ -34,12 +34,12 @@ void main (int argc, char *argv[])
   mbox_close(mbox_co);
   
   mbox_open(mbox_o2);
+  Printf("4CO -> 2O2 + 2C2, pid: %d\n", getpid());
   for (i = 0; i < 2; i++) {
   	mbox_send(mbox_o2, sizeof(mes), (void *) mes);
   }
   mbox_close(mbox_o2);
   
-  Printf("4CO -> 2O2 + 2C2, pid: %d\n", getpid());
   // Signal the semaphore to tell the original process that we're done
   if(sem_signal(s_procs_completed) != SYNC_SUCCESS) {
     Printf("Bad semaphore s_procs_completed (%d) in ", s_procs_completed); Printf(argv[0]); Printf(", exiting...\n");
