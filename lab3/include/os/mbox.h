@@ -24,6 +24,7 @@ typedef struct mbox {
 	int inuse;	// if the space is allocated/reserved for 
 				// the mailbox/ or that the mailbox is created
 	Queue message_buffer;
+	int lock_allocated;	// used in case locks are over allocated
 	lock_t lock;
 	cond_t cond_full;
 	cond_t cond_empty;
