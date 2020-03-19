@@ -181,7 +181,7 @@ int MboxSend(mbox_t handle, int length, void* message) {
 	if (SYNC_FAIL == LockHandleAcquire(mbox_list[handle].lock)){
 		return MBOX_FAIL;
 	}
-	if (mbox_list[handle].total_messages >= MBOX_MAX_BUFFERS_PER_MBOX) {	// wait till the mail box is not full
+	while (mbox_list[handle].total_messages >= MBOX_MAX_BUFFERS_PER_MBOX) {	// wait till the mail box is not full
 		CondHandleWait(mbox_list[handle].cond_full);
 	}
 
@@ -197,8 +197,9 @@ int MboxSend(mbox_t handle, int length, void* message) {
 
 	l = AQueueAllocLink(&(mbox_messages_list[i]));
 	AQueueInsertLast(&(mbox_list[handle].message_buffer),l);
-
-	CondHandleSignal(mbox_list[handle].cond_empty);
+	if (mbox_list[handle].total_messages>0){
+		CondHandleSignal(mbox_list[handle].cond_empty);
+	}
 	if (SYNC_FAIL == LockHandleRelease(mbox_list[handle].lock)){
 		return MBOX_FAIL;
 	}
@@ -237,7 +238,7 @@ int MboxRecv(mbox_t handle, int maxlength, void* message) {
 	if (SYNC_FAIL==LockHandleAcquire(mbox_list[handle].lock)){
 		return MBOX_FAIL;
 	}
-	if (mbox_list[handle].total_messages == 0) {
+	while (mbox_list[handle].total_messages == 0) {
 		CondHandleWait(&(mbox_list[handle].cond_empty));
 	}
 
@@ -252,8 +253,9 @@ int MboxRecv(mbox_t handle, int maxlength, void* message) {
 	mes->inuse = 0;
 	AQueueRemove(&l);
 	mbox_list[handle].total_messages--;
-
-	CondHandleSignal(mbox_list[handle].cond_full);
+	if (mbox_list[handle].total_messages < MBOX_MAX_BUFFERS_PER_MBOX){
+		CondHandleSignal(mbox_list[handle].cond_full);
+	}
 	if (SYNC_FAIL == LockHandleRelease(mbox_list[handle].lock)){
 		return MBOX_FAIL;
 	}
