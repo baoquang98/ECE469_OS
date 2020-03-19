@@ -133,8 +133,10 @@ int MboxClose(mbox_t handle) {
 		}
 		mbox_list[handle].inuse = 0;
 	}
-	LockHandleRelease(mbox_list[handle].lock);
- return MBOX_SUCCESS;
+	if (SYNC_FAIL == LockHandleRelease(mbox_list[handle].lock)){
+		return MBOX_FAIL;
+	}
+	return MBOX_SUCCESS;
 }
 
 //-------------------------------------------------------
@@ -158,7 +160,9 @@ int MboxSend(mbox_t handle, int length, void* message) {
 	//Need much error checking
 	int i;
 	Link * l;
-	LockHandleAcquire(mbox_list[handle].lock);
+	if (SYNC_FAIL == LockHandleAcquire(mbox_list[handle].lock)){
+		return MBOX_FAIL;
+	}
 	if (!mbox_list[handle].pid[GetCurrentPid()]) {
 		return MBOX_FAIL;
 	}
@@ -179,7 +183,9 @@ int MboxSend(mbox_t handle, int length, void* message) {
 	l = AQueueAllocLink(&(mbox_messages_list[i]));
 	AQueueInsertLast(&(mbox_list[handle].message_buffer),l);
 
-	LockHandleRelease(mbox_list[handle].lock);
+	if (SYNC_FAIL == LockHandleRelease(mbox_list[handle].lock)){
+		return MBOX_FAIL;
+	}
 	CondHandleSignal(mbox_list[handle].cond_empty);
 
  return MBOX_SUCCESS;
@@ -254,7 +260,9 @@ int MboxCloseAllByPid(int pid) {
 	int count;
 	for (handle = 0; handle < MBOX_NUM_MBOXES; handle++) {
 		if (mbox_list[handle].inuse) {
-			LockHandleAcquire(mbox_list[handle].lock);
+			if (SYNC_FAIL == LockHandleAcquire(mbox_list[handle].lock)){
+				return MBOX_FAIL;
+			}
 			count = 0;
 			for (i = 0; i < PROCESS_MAX_PROCS; i++) {
 				if (mbox_list[handle].pid[i]) 
@@ -269,7 +277,9 @@ int MboxCloseAllByPid(int pid) {
 				}
 				mbox_list[handle].inuse = 0;
 			}
-			LockHandleRelease(mbox_list[handle].lock);
+			if (SYNC_FAIL == LockHandleRelease(mbox_list[handle].lock)){
+				return MBOX_FAIL;
+			}
 		}
 		/////////
   	}
