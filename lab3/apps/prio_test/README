@@ -11,3 +11,7 @@ switch processes in and out exactly the same way, resulting in the same sequence
 print messages.  The only difference in the two files should be the two lines printing
 the *real* execution time, since that will vary from one run to another.
 
+Explanation for different output for test_prio
+The 3 process got spawn was 30, 29 and 28 which was 1 higher than the expected output because we have not implemented the idle process
+
+The output sequence match up with expected output in term of priority level (Process of lower priority won't get to run unless higher priority are complete) but the sequence of process running on the same priority queue are not the same, this is probably because of the way we reinsert pcb back in the run queues after we decay all the estcpu value and recompute priority
