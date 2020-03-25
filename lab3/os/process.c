@@ -57,7 +57,7 @@ static inline int pow(int x, int power) {
 	int i;
 	int res = 1;
 	for (i = 0; i < power; i++) {
-		res *= x;
+		res = res * x;
 	}
 	return res;
 }
@@ -243,38 +243,6 @@ void ProcessSchedule () {
   	currentPCB->priority = BASE_PRIORITY + currentPCB->estcpu/4 + 2*currentPCB->pnice;
   }
   
-  if (ClkGetCurJiffies() - last_update >= TIME_PER_CPU_WINDOW * CPU_WINDOWS_BETWEEN_DECAY) { //0.1 seconds or 10 quanta is 100 jiffies
-  	for (i = 0; i < PROCESS_MAX_QUEUES; i++) {
-		l = AQueueFirst(&(runQueue[i]));
-		while (l != NULL) {
-		    //curr = l;
-			pcb = (PCB *) AQueueObject(l);
-			pcb->estcpu = (pcb->estcpu * (2*load) / (2*load + 1)) + pcb->pnice;
-			pcb->priority = BASE_PRIORITY + pcb->estcpu/4 + 2*pcb->pnice;
-			l = AQueueNext(l);
-		}
-	} //Decay all the priority
-    last_update = ClkGetCurJiffies();
-  }
-  	for (i = 0; i < PROCESS_MAX_QUEUES; i++) {
-		temp = AQueueFirst(&(runQueue[i]));
-		length = AQueueLength(&(runQueue[i]));
-		for (j = 0; j < length; j++) {
-			l = temp;
-			temp = AQueueNext(temp);
-			pcb = (PCB *) AQueueObject(l);
-			queue_number = pcb->priority / PRIORITIES_PER_QUEUE;
-		
-			AQueueRemove(&(pcb->l));
-			pcb->l = AQueueAllocLink(pcb);
-		
-			AQueueInsertLast(&runQueue[queue_number], pcb->l);
-		}
-  	} //Put all the prcess im the correct queues
-  RestoreIntrs(intrs);
-
-  
-  
   for (i = 0; i < PROCESS_MAX_QUEUES; i++) {
   	if (!AQueueEmpty(&runQueue[i])) {
 		break;
@@ -305,6 +273,39 @@ void ProcessSchedule () {
   currentPCB->run_start = ClkGetCurJiffies();
   dbprintf ('p',"About to switch to PCB 0x%x,flags=0x%x @ 0x%x\n",
 	    (int)pcb, pcb->flags, (int)(pcb->sysStackPtr[PROCESS_STACK_IAR]));
+  
+  if (ClkGetCurJiffies() - last_update >= TIME_PER_CPU_WINDOW * CPU_WINDOWS_BETWEEN_DECAY) { //0.1 seconds or 10 quanta is 100 jiffies
+  	for (i = 0; i < PROCESS_MAX_QUEUES; i++) {
+		l = AQueueFirst(&(runQueue[i]));
+		while (l != NULL) {
+		    //curr = l;
+			pcb = (PCB *) AQueueObject(l);
+			pcb->estcpu = (pcb->estcpu * (2*load) / (2*load + 1)) + pcb->pnice;
+			pcb->priority = BASE_PRIORITY + pcb->estcpu/4 + 2*pcb->pnice;
+			l = AQueueNext(l);
+		}
+	} //Decay all the priority
+    last_update = ClkGetCurJiffies();
+  }
+  for (i = 0; i < PROCESS_MAX_QUEUES; i++) {
+	temp = AQueueFirst(&(runQueue[i]));
+	length = AQueueLength(&(runQueue[i]));
+	for (j = 0; j < length; j++) {
+		l = temp;
+		temp = AQueueNext(temp);
+		pcb = (PCB *) AQueueObject(l);
+		queue_number = pcb->priority / PRIORITIES_PER_QUEUE;
+		
+		AQueueRemove(&(pcb->l));
+		pcb->l = AQueueAllocLink(pcb);
+	
+		AQueueInsertLast(&runQueue[queue_number], pcb->l);
+	}
+  } //Put all the prcess im the correct queues
+  RestoreIntrs(intrs);
+
+  
+  
   // Clean up zombie processes here.  This is done at interrupt time
   // because it can't be done while the process might still be running
   while (!AQueueEmpty(&zombieQueue)) {
