@@ -286,6 +286,18 @@ uint32 MemorySetupPte (uint32 page) {
 }
 
 
+void MemoryFreePageTableEntry(uint32 pte) {
+  // Converts pagetable entry to page and then sends to memory free page function
+  MemoryFreePage((pte & MEM_MASK_PTE2PAGE) / MEM_PAGESIZE);
+}
+
+void *malloc(int memsize){
+  return NULL;
+}
+int mfree(void *ptr){
+  return 1;
+}
+
 void MemoryFreePage(uint32 page) {
   // get page and bit position
   uint32 index = page / 32;
