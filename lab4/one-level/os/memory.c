@@ -291,10 +291,10 @@ void MemoryFreePageTableEntry(uint32 pte) {
   MemoryFreePage((pte & MEM_MASK_PTE2PAGE) / MEM_PAGESIZE);
 }
 
-void *malloc(int memsize){
+void* malloc(PCB* pcb, int memsize){
   return NULL;
 }
-int mfree(void *ptr){
+int mfree(PCB* pcb, void* ptr){
   return 1;
 }
 

@@ -22,8 +22,8 @@ int MemoryPageFaultHandler(PCB *pcb);
 // Put your function prototypes here
 //---------------------------------------------------------
 // All function prototypes including the malloc and mfree functions go here
-void* malloc(int memsize);
-int mfree(void* ptr);
+void* malloc(PCB* pcb, int memsize);
+int mfree(PCB* pcb, void* ptr);
 void MemoryFreePageTableEntry(uint32 pte);
 
 #endif	// _memory_h_
