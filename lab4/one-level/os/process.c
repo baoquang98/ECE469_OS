@@ -126,7 +126,7 @@ void ProcessSetStatus (PCB *pcb, int status) {
 //----------------------------------------------------------------------
 void ProcessFreeResources (PCB *pcb) {
   int i = 0;
-
+  int stack_pointer_page = MEM_ADDR2PAGE(pcb->currentSavedFrame[PROCESS_STACK_USER_STACKPOINTER]);
   // Allocate a new link for this pcb on the freepcbs queue
   if ((pcb->l = AQueueAllocLink(pcb)) == NULL) {
     printf("FATAL ERROR: could not get Queue Link in ProcessFreeResources!\n");
@@ -143,9 +143,22 @@ void ProcessFreeResources (PCB *pcb) {
   //------------------------------------------------------------
   // STUDENT: Free any memory resources on process death here.
   //------------------------------------------------------------
+  // Free the PTEs
+  for(i = 0; i < 4; i++) {
+    MemoryFreePageTableEntry(pcb->pagetable[i]);
+  }
 
+  // Free the user stack (start at current and go to max)
+  for(i = stack_pointer_page; i <= MEM_ADDR2PAGE(MEM_MAX_VIRTUAL_ADDRESS); i++) {
+    MemoryFreePageTableEntry(pcb->pagetable[i]);
+  }
 
+  // Free the system stack
+  MemoryFreePage (pcb->sysStackArea / MEM_PAGESIZE);
   ProcessSetStatus (pcb, PROCESS_STATUS_FREE);
+
+  // for debug
+  dbprintf ('p', "ProcessFreeResources: function complete\n");
 }
 
 //----------------------------------------------------------------------

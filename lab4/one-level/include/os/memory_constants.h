@@ -40,8 +40,9 @@
 #define MEM_NUM_PAGES (MEM_MAX_SIZE / MEM_PAGESIZE)
 #define MEM_ADDRESS_OFFSET_MASK (MEM_PAGESIZE - 1)
 
-// Conversions
+// get the page index
 #define MEM_ADDR2PAGE(address) ((address) >> MEM_L1FIELD_FIRST_BITNUM)
-#define MEM_ADDR2OFFS(address) ((address) & MEM_ADDR_OFFS_MASK)
+// get the offset mask
+#define MEM_ADDR2OFFS(address) ((address) & MEM_ADDRESS_OFFSET_MASK)
 
 #endif	// _memory_constants_h_
