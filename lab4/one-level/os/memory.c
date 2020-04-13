@@ -12,7 +12,7 @@
 #include "queue.h"
 
 // num_pages = size_of_memory / size_of_one_page
-static uint32 freemap[/*size*/];
+static uint32 freemap[MEM_MAX_SIZE / MEM_PAGESIZE / 32];
 static uint32 pagestart;
 static int nfreepages;
 static int freemapmax;
@@ -56,9 +56,37 @@ int MemoryGetSize() {
 //
 //----------------------------------------------------------------------
 void MemoryModuleInit() {
+  int i;
+  // set up the freemap for pages
+  int maxpage = MemoryGetSize() / MEM_PAGESIZE;   // get the maximum number of pages available for allocation
+  uint32 num_os_pages = (lastosaddress & 0x1FFFFC) / MEM_PAGESIZE;  // get the number of pages used by the operating system
+  uint32 index;
+  uint32 bit_position;
+
+  dbprintf('m', "Entering memory module initialization\n");
+
+  pagestart = num_os_pages + 1;               // the starting page after the os
+  freemapmax = (maxpage+31) / 32;             // the maximum number of uint32 of freemap
+
+  // Initialize all
+  for(i = 0; i < freemapmax; i++) {
+    freemap[i] = 0;
+  }
+
+  // Go from the page start to the maxpage
+  nfreepages = 0;
+  for(i = pagestart; i < maxpage; i++) {
+    nfreepages += 1;
+    // get page and bit position
+    index = i / 32;
+    bit_position = i % 32;
+    // set the val
+    freemap[index] = (freemap[index] & invert(1 << bit_position)) | (1 << bit_position);
+  }
+  dbprintf('m', "Done with memory module initialization\n");
 }
 
-
+  
 //----------------------------------------------------------------------
 //
 // MemoryTranslateUserToSystem
@@ -68,6 +96,12 @@ void MemoryModuleInit() {
 //
 //----------------------------------------------------------------------
 uint32 MemoryTranslateUserToSystem (PCB *pcb, uint32 addr) {
+  uint32 page = MEM_ADDR2PAGE(addr);    // the page index
+
+  if (pcb->pagetable[page] & MEM_PTE_VALID) {
+    return ((pcb->pagetable[page] & MEM_MASK_PTE2PAGE) | MEM_ADDR2OFFS(addr));
+  }
+  return MEM_FAIL;
 }
 
 
