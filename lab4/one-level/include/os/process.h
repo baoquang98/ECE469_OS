@@ -39,7 +39,7 @@ typedef struct PCB {
   uint32	sysStackArea;	// System stack area for this process
   unsigned int	flags;
   char		name[80];	// Process name
-  uint32	pagetable[PROCESS_STACK_PTSIZE]; // Statically allocated page table
+  uint32	pagetable[MEM_L1PAGETABLE_SIZE]; // Statically allocated page table
   int		npages;		// Number of pages allocated to this process
   Link		*l;		// Used for keeping PCB in queues
 } PCB;
@@ -51,14 +51,14 @@ extern PCB	*currentPCB;
 #define	PROCESS_STACK_IREG	10	// Offset of r0 (grows upwards)
 // NOTE: r0 isn't actually stored!  This is for convenience - r1 is the
 // first stored register, and is at location PROCESS_STACK_IREG+1
-#define	PROCESS_STACK_FREG	(PROCESS_STACK_IREG+32)	// Offset of f0
-#define	PROCESS_STACK_IAR	(PROCESS_STACK_FREG+32) // Offset of IAR
-#define	PROCESS_STACK_ISR	(PROCESS_STACK_IAR+1)
-#define	PROCESS_STACK_CAUSE	(PROCESS_STACK_IAR+2)
-#define	PROCESS_STACK_FAULT	(PROCESS_STACK_IAR+3)
-#define	PROCESS_STACK_PTBASE	(PROCESS_STACK_IAR+4)
-#define	PROCESS_STACK_PTSIZE	(PROCESS_STACK_IAR+5)
-#define	PROCESS_STACK_PTBITS	(PROCESS_STACK_IAR+6)
+#define	PROCESS_STACK_FREG	(PROCESS_STACK_IREG+32)	// Offset of f0: 32+10=42
+#define	PROCESS_STACK_IAR	(PROCESS_STACK_FREG+32) // Offset of IAR   42+32=74
+#define	PROCESS_STACK_ISR	(PROCESS_STACK_IAR+1)   //                 74+1=75
+#define	PROCESS_STACK_CAUSE	(PROCESS_STACK_IAR+2) //                 76
+#define	PROCESS_STACK_FAULT	(PROCESS_STACK_IAR+3) //                 77
+#define	PROCESS_STACK_PTBASE	(PROCESS_STACK_IAR+4) //               78 base address of the level 1 page table
+#define	PROCESS_STACK_PTSIZE	(PROCESS_STACK_IAR+5) //               79 maximum number of entries in the level 1 page table
+#define	PROCESS_STACK_PTBITS	(PROCESS_STACK_IAR+6) //               80
 #define PROCESS_STACK_USER_STACKPOINTER  (PROCESS_STACK_IREG + 29) // r29 is user stack pointer
 #define	PROCESS_STACK_PREV_FRAME 10	// points to previous interrupt frame
 #define	PROCESS_STACK_FRAME_SIZE 85	// interrupt frame is 85 words
