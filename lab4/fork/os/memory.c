@@ -321,7 +321,6 @@ void MemoryFreePage(uint32 page) {
 
 
 void MemoryRopHandler(PCB * pcb) {
-  dbprintf("m", "\n\n\n\n\n\nhandler is indeed in place \n\n\n\n\n");
   // addresses to use
   uint32 fault_address = pcb->currentSavedFrame[PROCESS_STACK_FAULT];
   // corresponding pages for the addresses
