@@ -18,7 +18,7 @@ void main (int argc, char *argv[])
   Printf("Hello world\n");
 
   // Now print a message to show that everything worked
-  Printf("Hello World (%d): Done with TEST1 in Q2\n", getpid());
+  Printf("Hello World (%d): Done\n", getpid());
 
   if(sem_signal(test_complete) != SYNC_SUCCESS) {
     Printf("Hello World (%d): Bad semaphore test_complete (%d)!\n", getpid(), test_complete);
