@@ -9,7 +9,21 @@
 #define TEST5 "test5.dlx.obj"
 #define TEST6 "test6.dlx.obj"
 
-void test_wrapper(int test_id, sem_t s_procs_completed, char * s_procs_completed_str){
+void test_wrapper(int test_id){
+
+  sem_t s_procs_completed;             // Semaphore used to wait until all spawned processes have completed
+  char s_procs_completed_str[10];      // Used as command-line argument to pass page_mapped handle to new processes
+
+  if ((s_procs_completed = sem_create(0)) == SYNC_FAIL) {
+    Printf("makeprocs (%d): Bad sem_create\n", getpid());
+    Exit();
+  }
+
+  // Setup the command-line arguments for the new processes.  We're going to
+  // pass the handles to the semaphore as strings
+  // on the command line, so we must first convert them from ints to strings.
+  ditoa(s_procs_completed, s_procs_completed_str);
+
   switch(test_id) {
     case 1: 
       process_create(TEST1, s_procs_completed_str, NULL);
@@ -24,7 +38,7 @@ void test_wrapper(int test_id, sem_t s_procs_completed, char * s_procs_completed
       break;
   }
   if (sem_wait(s_procs_completed) != SYNC_SUCCESS) {
-    Printf("Bad semaphore s_procs_completed (%d) in TEST1\n", s_procs_completed);
+    Printf("Bad semaphore s_procs_completed (%d) in TEST%d\n", s_procs_completed, test_id);
     Exit();
   }
 }
@@ -33,8 +47,6 @@ void main (int argc, char *argv[])
 {
   int num_hello_world = 0;             // Used to store number of processes to create
   int i;                               // Loop index variable
-  sem_t s_procs_completed;             // Semaphore used to wait until all spawned processes have completed
-  char s_procs_completed_str[10];      // Used as command-line argument to pass page_mapped handle to new processes
 
   if (argc != 1) {
     Printf("Usage: no argument, this just runs the tests\n");
@@ -47,23 +59,15 @@ void main (int argc, char *argv[])
 
   // Create semaphore to not exit this process until all other processes 
   // have signalled that they are complete.
-  if ((s_procs_completed = sem_create(2-1)) == SYNC_FAIL) {
-    Printf("makeprocs (%d): Bad sem_create\n", getpid());
-    Exit();
-  }
 
-  // Setup the command-line arguments for the new processes.  We're going to
-  // pass the handles to the semaphore as strings
-  // on the command line, so we must first convert them from ints to strings.
-  ditoa(s_procs_completed, s_procs_completed_str);
 
   Printf("-------------------------------------------------------------------------------------\n");
   Printf("Start Testing\n");
   Printf("-------------------------------------------------------------------------------------\n");
 
-  test_wrapper(1, s_procs_completed, s_procs_completed_str);
+  test_wrapper(1);
   Printf("-------------------------------------------------------------------------------------\n");
-  test_wrapper(2, s_procs_completed, s_procs_completed_str);
+  test_wrapper(2);
   // Create Hello World processes
   // Printf("-------------------------------------------------------------------------------------\n");
   // Printf("makeprocs (%d): Creating %d hello world's in a row, but only one runs at a time\n", getpid(), num_hello_world);
@@ -75,12 +79,7 @@ void main (int argc, char *argv[])
   //     Exit();
   //   }
   // }
-  
-  // And finally, wait until all spawned processes have finished.
-  if (sem_wait(s_procs_completed) != SYNC_SUCCESS) {
-    Printf("Bad semaphore s_procs_completed (%d) in ", s_procs_completed); Printf(argv[0]); Printf("\n");
-    Exit();
-  }
+
   Printf("-------------------------------------------------------------------------------------\n");
   Printf("makeprocs (%d): All other processes completed, exiting main process.\n", getpid());
   Printf("Q2 end\n");
