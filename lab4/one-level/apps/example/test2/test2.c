@@ -6,7 +6,7 @@ void main (int argc, char *argv[])
 {
   sem_t s_procs_completed; // Semaphore to signal the original process that we're done
   int * ptr;
-  Printf("Start hello world testing (PID: %d): Print 'Hello World' and exit.\n", getpid());
+  Printf("Start accessing out of range testing (PID: %d): Access memory beyond the maximum virtual address.\n", getpid());
 
   if (argc != 2) { 
     Printf("Usage: %s <handle_to_procs_completed_semaphore>\n"); 
