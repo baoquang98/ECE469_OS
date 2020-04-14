@@ -28,16 +28,16 @@
 
 #define	TRAP_ILLEGALINST	0x1	// Illegal instruction
 #define	TRAP_ADDRESS		0x2	// Bad address
-#define	TRAP_ACCESS		0x3	// Attempted to access illegal memory
+#define	TRAP_ACCESS		    0x3	// Attempted to access illegal memory
 #define	TRAP_OVERFLOW		0x4	// Math overflow
-#define	TRAP_DIV0		0x5	// Divide by 0
+#define	TRAP_DIV0		    0x5	// Divide by 0
 #define	TRAP_PRIVILEGE		0x6	// Instruction must be executed as sys
-#define	TRAP_FORMAT		0x7	// Instruction is malformed
-#define TRAP_RO_ACCESS  0x8 // read-only Access
+#define	TRAP_FORMAT		    0x7	// Instruction is malformed
+#define TRAP_ROP_ACCESS      0x8 // read-only Access
 #define	TRAP_PAGEFAULT		0x20
 #define	TRAP_TLBFAULT		0x30
-#define	TRAP_TIMER		0x40	// timer interrupt
-#define	TRAP_KBD		0x48	// keyboard interrupt
+#define	TRAP_TIMER		    0x40	// timer interrupt
+#define	TRAP_KBD		    0x48	// keyboard interrupt
 
 // This bit is set in CAUSE if the interrupt was a trap instruction
 #define	TRAP_TRAP_INSTR		0x08000000

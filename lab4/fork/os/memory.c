@@ -16,7 +16,7 @@ static uint32 freemap[MEM_MAX_SIZE / MEM_PAGESIZE / 32];
 static uint32 pagestart;
 static int nfreepages;
 static int freemapmax;
-static int reference_counter[MEM_MAX_SIZE >> MEM_L1FIELD_FIRST_BITNUM];
+static int reference_counters[MEM_MAX_SIZE >> MEM_L1FIELD_FIRST_BITNUM];
 
 //----------------------------------------------------------------------
 //
@@ -290,9 +290,9 @@ void MemorySharePTE (uint32 pte) {
   // convert PTE to page (the real fork process handles setting the read only bit)
   int page = ((pte & MEM_MASK_PTE2PAGE) / MEM_PAGESIZE);
   // increment the reference counter
-  reference_counter[page] += 1;
+  reference_counters[page] += 1;
   // debug message
-  dbprintf('m', "MemorySharePTE: page=%d count=%d\n", page, reference_counter[page]);
+  dbprintf('m', "MemorySharePTE: page=%d count=%d\n", page, reference_counters[page]);
 }
 
 
@@ -319,3 +319,31 @@ void MemoryFreePage(uint32 page) {
   dbprintf ('m', "Freed page 0x%x, %d remaining.\n", page, nfreepages);
 }
 
+
+void MemoryRopHandler(PCB * pcb) {
+  // addresses to use
+  uint32 fault_address = pcb->currentSavedFrame[PROCESS_STACK_FAULT];
+  // corresponding pages for the addresses
+  int pg_fault_address = MEM_ADDR2PAGE(fault_address);
+  int parent_page = MEM_ADDR2PAGE(pcb->pagetable[pg_fault_address] & MEM_MASK_PTE2PAGE);
+  int new_page;
+
+  dbprintf('m', "MemoryRopHandler: Let's start.\n");
+
+  if(reference_counters[parent_page] > 1) {
+    // there are more users, which calls for new pages
+    dbprintf('m', "Now it's time to copy page %d to page %d\n", parent_page, pg_fault_address);
+    // generate and setup a page
+    new_page = MemoryAllocPage();
+    pcb->pagetable[pg_fault_address] = MemorySetupPte (new_page);
+    // do the copying
+    bcopy((char *)(fault_address), (char *)(new_page * MEM_PAGESIZE), MEM_PAGESIZE);
+    // decrement reference counter since one has its own
+    reference_counters[parent_page] -= 1;
+  } else {
+    dbprintf('m', "MemoryRoHandler: there is exactly one process using this page, invert read-only.\n");
+    // Reference counter is only one, so reset the readonly
+    pcb->pagetable[pg_fault_address] &= invert(MEM_PTE_READONLY);
+  }
+  dbprintf('m', "MemoryRoHandler: End.\n");
+}
