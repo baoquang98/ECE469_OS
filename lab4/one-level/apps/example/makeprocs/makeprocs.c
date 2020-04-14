@@ -75,8 +75,13 @@ void main (int argc, char *argv[])
   //     Exit();
   //   }
   // }
-
-  // Printf("-------------------------------------------------------------------------------------\n");
-  // Printf("makeprocs (%d): All other processes completed, exiting main process.\n", getpid());
+  
+  // And finally, wait until all spawned processes have finished.
+  if (sem_wait(s_procs_completed) != SYNC_SUCCESS) {
+    Printf("Bad semaphore s_procs_completed (%d) in ", s_procs_completed); Printf(argv[0]); Printf("\n");
+    Exit();
+  }
+  Printf("-------------------------------------------------------------------------------------\n");
+  Printf("makeprocs (%d): All other processes completed, exiting main process.\n", getpid());
   Printf("Q2 end\n");
 }
