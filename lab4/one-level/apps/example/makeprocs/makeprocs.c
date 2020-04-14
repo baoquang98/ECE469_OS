@@ -61,10 +61,9 @@ void main (int argc, char *argv[])
   Printf("Start Testing\n");
   Printf("-------------------------------------------------------------------------------------\n");
 
-  process_create(TEST1, s_procs_completed_str, NULL);
+  test_wrapper(1, s_procs_completed, s_procs_completed_str);
   Printf("-------------------------------------------------------------------------------------\n");
-  process_create(TEST1, s_procs_completed_str, NULL);
-
+  test_wrapper(2, s_procs_completed, s_procs_completed_str);
   // Create Hello World processes
   // Printf("-------------------------------------------------------------------------------------\n");
   // Printf("makeprocs (%d): Creating %d hello world's in a row, but only one runs at a time\n", getpid(), num_hello_world);
