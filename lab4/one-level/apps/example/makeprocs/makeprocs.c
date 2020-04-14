@@ -9,7 +9,7 @@
 #define TEST5 "test5.dlx.obj"
 #define TEST6 "test6.dlx.obj"
 
-void test_wrapper(int test_id){
+void test_wrapper(int test_id, sem_t all_complete){
   int i;
   sem_t test_complete;             // Semaphore used to wait until all spawned processes have completed
   char test_completed_str[10];      // Used as command-line argument to pass page_mapped handle to new processes
@@ -68,6 +68,13 @@ void test_wrapper(int test_id){
     Printf("Bad semaphore test_complete (%d) in TEST%d\n", test_complete, test_id);
     Exit();
   }
+
+  if(sem_signal(all_complete) != SYNC_SUCCESS) {
+    Printf("All test bad (%d)!\n", getpid(), all_complete);
+    Exit();
+  }
+  Printf("-------------------------------------------------------------------------------------\n");
+
 }
 
 void main (int argc, char *argv[])
@@ -99,42 +106,13 @@ void main (int argc, char *argv[])
   Printf("Start Testing\n");
   Printf("-------------------------------------------------------------------------------------\n");
 
-  test_wrapper(1);
-  Printf("-------------------------------------------------------------------------------------\n");
-  if(sem_signal(all_complete) != SYNC_SUCCESS) {
-    Printf("All test bad (%d)!\n", getpid(), all_complete);
-    Exit();
-  }
-  test_wrapper(3);
-  Printf("-------------------------------------------------------------------------------------\n");
-  if(sem_signal(all_complete) != SYNC_SUCCESS) {
-    Printf("All test bad (%d)!\n", getpid(), all_complete);
-    Exit();
-  }
-  test_wrapper(4);
-  Printf("-------------------------------------------------------------------------------------\n");
-  if(sem_signal(all_complete) != SYNC_SUCCESS) {
-    Printf("All test bad (%d)!\n", getpid(), all_complete);
-    Exit();
-  }
-  test_wrapper(5);
-  Printf("-------------------------------------------------------------------------------------\n");
-  if(sem_signal(all_complete) != SYNC_SUCCESS) {
-    Printf("All test bad (%d)!\n", getpid(), all_complete);
-    Exit();
-  }
-  test_wrapper(6);
-  Printf("-------------------------------------------------------------------------------------\n");
-  if(sem_signal(all_complete) != SYNC_SUCCESS) {
-    Printf("All test bad (%d)!\n", getpid(), all_complete);
-    Exit();
-  }
-  test_wrapper(2);
-  Printf("-------------------------------------------------------------------------------------\n");
-  if(sem_signal(all_complete) != SYNC_SUCCESS) {
-    Printf("All test bad (%d)!\n", getpid(), all_complete);
-    Exit();
-  }
+  test_wrapper(1, all_complete);
+  test_wrapper(3, all_complete);
+  test_wrapper(4, all_complete);
+  test_wrapper(5, all_complete);
+  test_wrapper(6, all_complete);
+  test_wrapper(2, all_complete);
+
   // test_wrapper(3);
   // Create Hello World processes
   // Printf("-------------------------------------------------------------------------------------\n");
