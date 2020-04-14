@@ -1010,21 +1010,87 @@ void ProcessKill() {
 }
 
 
-int ProcessRealFork() {
+int ProcessRealFork() 
+/*
+Here the idea is that no new pages are allocated for the child
+*/
+{
 
   int pid_parrent = GetCurrentPid();
   PCB * child;        // for the child process
   uint32 *stackframe;
-  uint32 GrabPg;
+  uint32 page;
   int intrs, i;
 
-  dbprintf ('I', "Old interrupt value was 0x%x.\n", intrs);
-  dbprintf('p', "PID (%d): starts forking", GetCurrentPid());
 
   intrs = DisableIntrs();
 
 
+  dbprintf ('I', "Old interrupt value was 0x%x.\n", intrs);
+  dbprintf('p', "PID (%d): starts forking", GetCurrentPid());
+  // get a new pcb
+  if (AQueueEmpty(&freepcbs)) {
+		printf ("FATAL error: no pcbs left!\n");
+		exitsim ();	
+	}
+  child = (PCB *)AQueueObject(AQueueFirst(&freepcbs));
+	dbprintf('p', "Acquired a link at 0x%x\n", (int)(child->l));
+	if (AQueueRemove (&(child->l)) != QUEUE_SUCCESS) {
+		printf("FATAL ERROR: could not remove link from freepcbsQueue in ProcessRealFork!\n");
+		exitsim();
+	}
+  // Preventing another user from grabbing this process
+  ProcessSetStatus (child, PROCESS_STATUS_RUNNABLE);
+  // set read-only and share
+	for (i = 0;i < 4;++i){
+    currentPCB->pagetable[i] |= MEM_PTE_READONLY;
+    MemorySharePTE(currentPCB->pagetable[i]);
+	}
 
+  // user stack is also shared at first
+  currentPCB->pagetable[MEM_ADDR2PAGE(MEM_MAX_VIRTUAL_ADDRESS)] |= MEM_PTE_READONLY; 
+  MemorySharePTE(currentPCB->pagetable[MEM_ADDR2PAGE(MEM_MAX_VIRTUAL_ADDRESS)]);
+
+  // Copy parent to child
+  bcopy((char *)currentPCB, (char *)child, sizeof(PCB));
+
+  //System Stack:
+  //Grab a page
+  page = MemoryAllocPage();
+  if (page == MEM_FAIL) {
+    printf("Error Could not allocate page \n");
+    ProcessFreeResources(child);
+    return PROCESS_FAIL;
+  }
+
+  // Setup child systackarea * frame
+  child->sysStackArea = page * MEM_PAGESIZE;
+  bcopy((char *)(currentPCB->sysStackArea), (char *)(child->sysStackArea), MEM_PAGESIZE);
+
+  stackframe = (uint32 *)(child->sysStackArea + MEM_PAGESIZE - 4);
+  stackframe -= PROCESS_STACK_FRAME_SIZE;
+
+  child->sysStackPtr = stackframe;
+  child->currentSavedFrame = stackframe;
+
+  stackframe[PROCESS_STACK_PTBASE] = (uint32) &child->pagetable[0];
+
+  // get the process into the run queue
+  intrs = DisableIntrs();
+  if((child->l = AQueueAllocLink(child)) == NULL) {
+    printf("FATAL ERROR: failed to get the link for pcb\n");
+    exitsim();
+  }
+
+  if(AQueueInsertLast(&runQueue, child->l) != QUEUE_SUCCESS) {
+    printf("FATAL ERROR:runQueue insertion failed!\n");
+    exitsim();
+  }
   RestoreIntrs(intrs);
-  return PROCESS_SUCCESS;
+
+  ProcessSetResult(child, 0);
+  ProcessSetResult(currentPCB, GetPidFromAddress(child));
+
+  // return the process id
+  return GetPidFromAddress(child);
 }

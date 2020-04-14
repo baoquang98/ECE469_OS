@@ -25,5 +25,6 @@ int MemoryPageFaultHandler(PCB *pcb);
 void* malloc(PCB* pcb, int memsize);
 int mfree(PCB* pcb, void* ptr);
 void MemoryFreePageTableEntry(uint32 pte);
+void MemorySharePTE (uint32 pte);
 
 #endif	// _memory_h_

@@ -16,6 +16,7 @@ static uint32 freemap[MEM_MAX_SIZE / MEM_PAGESIZE / 32];
 static uint32 pagestart;
 static int nfreepages;
 static int freemapmax;
+static int reference_counter[MEM_MAX_SIZE >> MEM_L1FIELD_FIRST_BITNUM];
 
 //----------------------------------------------------------------------
 //
@@ -283,6 +284,15 @@ int MemoryAllocPage(void) {
 
 uint32 MemorySetupPte (uint32 page) {
   return ((page * MEM_PAGESIZE) | MEM_PTE_VALID);
+}
+
+void MemorySharePTE (uint32 pte) {
+  // convert PTE to page (the real fork process handles setting the read only bit)
+  int page = ((pte & MEM_MASK_PTE2PAGE) / MEM_PAGESIZE);
+  // increment the reference counter
+  reference_counter[page] += 1;
+  // debug message
+  dbprintf('m', "MemorySharePTE: page=%d count=%d\n", page, reference_counter[page]);
 }
 
 
