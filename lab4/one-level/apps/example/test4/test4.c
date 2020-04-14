@@ -33,12 +33,10 @@ void main (int argc, char *argv[])
   // call recursive function to grow the call stack
   out = recusive_builder(x);
 
+  Printf("TEST4 (%d): Done!\n", getpid());
   // Signal the semaphore to tell the original process that we're done
   if(sem_signal(test_complete) != SYNC_SUCCESS) {
     Printf("TEST4 (%d): Bad semaphore test_complete (%d)!\n", getpid(), test_complete);
     Exit();
   }
-
-  // attempt to access that location
-  Printf("TEST4 (%d): Accessing Memory Value: %d (decimal)\n", getpid(), *ptr);
 }
