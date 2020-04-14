@@ -57,7 +57,10 @@ void test_wrapper(int test_id){
       }
       break;
     case 6:
-      process_create(TEST6, test_completed_str, NULL);
+      for (i = 0; i < num_processes; i++)
+      {
+        process_create(TEST6, test_completed_str, NULL);
+      }
       break;
   }
 
