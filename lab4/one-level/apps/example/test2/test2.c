@@ -1,6 +1,6 @@
 #include "usertraps.h"
 #include "misc.h"
-#include "os/emory_constants.h"
+#include "os/memory_constants.h"
 
 void main (int argc, char *argv[])
 {
