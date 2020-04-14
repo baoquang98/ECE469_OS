@@ -6,7 +6,7 @@ void main (int argc, char *argv[])
 {
   sem_t test_complete; // Semaphore to signal the original process that we're done
   int * ptr;
-  Printf("Start accessing out of range testing (PID: %d): Access memory beyond the maximum virtual address.\n", getpid());
+  Printf("TEST2 (%d): Start accessing out of range testing: Access memory beyond the maximum virtual address.\n", getpid());
 
   if (argc != 2) { 
     Printf("Usage: %s <test_complete_semaphore>\n"); 
@@ -18,17 +18,17 @@ void main (int argc, char *argv[])
 
   // Access memory beyond the maximum virtual address.
   ptr = (MEM_MAX_VIRTUAL_ADDRESS + 1);
-  Printf("Accessing Memory Location: %d (decimal)\n", ptr);
+  Printf("TEST2 (%d): Accessing Memory Location: %d (decimal)\n", getpid(), ptr);
 
   // Now print a message to show that everything worked
-  Printf("Will be accessing the memory s.t. the process (PID: %d) will be killed\n", getpid());
+  Printf("TEST2 (%d): Will be accessing the memory s.t. the process will be killed\n", getpid());
 
   // Signal the semaphore to tell the original process that we're done
   if(sem_signal(test_complete) != SYNC_SUCCESS) {
-    Printf("TEST2 (%d): Bad semaphore test_complete (%d)!\n", getpid(), test_complete);
+    Printf("TEST2 (%d): Bad semaphore test_complete!\n", getpid(), test_complete);
     Exit();
   }
   // attempt to access that location
-  Printf("Accessing Memory Value: %d (decimal)\n", *ptr);
+  Printf("TEST2 (%d): Accessing Memory Value: %d (decimal)\n", getpid(), *ptr);
 
 }

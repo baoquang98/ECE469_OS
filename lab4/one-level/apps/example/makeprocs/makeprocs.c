@@ -43,6 +43,7 @@ void test_wrapper(int test_id){
       process_create(TEST2, test_completed_str, NULL);
       break;
     case 3:
+      process_create(TEST3, test_completed_str, NULL);
       break;
     case 4:
       break;
