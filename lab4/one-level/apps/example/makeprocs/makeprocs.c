@@ -10,7 +10,7 @@
 #define TEST6 "test6.dlx.obj"
 
 void test_wrapper(int test_id){
-
+  int i;
   sem_t test_complete;             // Semaphore used to wait until all spawned processes have completed
   char test_completed_str[10];      // Used as command-line argument to pass page_mapped handle to new processes
   int num_processes;
@@ -36,7 +36,8 @@ void test_wrapper(int test_id){
   ditoa(test_complete, test_completed_str);
 
   switch(test_id) {
-    case 1: 
+    case 1:   
+      Printf("TEST1\n");
       process_create(TEST1, test_completed_str, NULL);
       break;
     case 2:
@@ -49,6 +50,11 @@ void test_wrapper(int test_id){
       process_create(TEST4, test_completed_str, NULL);
       break;
     case 5:
+      Printf("TEST5\n");
+      for (i = 0; i < num_processes; i++)
+      {
+        process_create(TEST1, test_completed_str, NULL);
+      }
       break;
     case 6:
       break;
@@ -87,6 +93,8 @@ void main (int argc, char *argv[])
   test_wrapper(3);
   Printf("-------------------------------------------------------------------------------------\n");
   test_wrapper(4);
+  Printf("-------------------------------------------------------------------------------------\n");
+  test_wrapper(5);
   Printf("-------------------------------------------------------------------------------------\n");
   test_wrapper(2);
   Printf("-------------------------------------------------------------------------------------\n");
