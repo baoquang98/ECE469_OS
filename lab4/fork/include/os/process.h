@@ -102,6 +102,7 @@ void ProcessKill();
 // Put any functions prototypes that you define here.
 //-------------------------------------------------------
 
+int ProcessRealFork();
 
 
 #endif	/* __process_h__ */

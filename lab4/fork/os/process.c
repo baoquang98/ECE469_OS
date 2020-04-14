@@ -1010,3 +1010,21 @@ void ProcessKill() {
 }
 
 
+int ProcessRealFork() {
+
+  int pid_parrent = GetCurrentPid();
+  PCB * child;        // for the child process
+  uint32 *stackframe;
+  uint32 GrabPg;
+  int intrs, i;
+
+  dbprintf ('I', "Old interrupt value was 0x%x.\n", intrs);
+  dbprintf('p', "PID (%d): starts forking", GetCurrentPid());
+
+  intrs = DisableIntrs();
+
+
+
+  RestoreIntrs(intrs);
+  return PROCESS_SUCCESS;
+}
