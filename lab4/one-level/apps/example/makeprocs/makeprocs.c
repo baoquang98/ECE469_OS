@@ -57,6 +57,7 @@ void test_wrapper(int test_id){
       }
       break;
     case 6:
+      process_create(TEST6, test_completed_str, NULL);
       break;
   }
 
