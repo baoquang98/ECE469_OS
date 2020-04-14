@@ -1,20 +1,25 @@
 #include "usertraps.h"
 #include "misc.h"
 
-int rec(int n)
+int recusive_builder(int n)
 {
   if(n == 0) {return 0;}
   // recursion to grow the call stack
-  return (1 + rec(n - 1));
+  if (n==1) {
+    Printf("TEST4 (%d): running out of stack\n", getpid());
+  }
+  return recusive_builder(n - 1);
 }
 
 
 void main (int argc, char *argv[])
 {
   sem_t test_complete; // Semaphore to signal the original process that we're done
-  int * ptr;
-  Printf("TEST3 (%d): Start accessing out of range testing: Access memory beyond the maximum virtual address.\n", getpid());
-
+  int x = 2500;
+  int out;
+  // int * ptr;
+  Printf("TEST4 (%d): Start accessing out of range testing: Access memory beyond the maximum virtual address.\n", getpid());
+  
   if (argc != 2) { 
     Printf("Usage: %s <test_complete_semaphore>\n"); 
     Exit();
@@ -22,20 +27,18 @@ void main (int argc, char *argv[])
 
   // Convert the command-line strings into integers for use as handles
   test_complete = dstrtol(argv[1], NULL, 10);
-
-  // Access memory beyond the maximum virtual address.
-  ptr = (MEM_MAX_VIRTUAL_ADDRESS + 1 - MEM_PAGESIZE) - 4;;
-  Printf("TEST3 (%d): Accessing Memory Location: %d (decimal)\n", getpid(), ptr);
-
   // Now print a message to show that everything worked
-  Printf("TEST3 (%d): Will be accessing the memory s.t. the process will be killed\n", getpid());
+  Printf("TEST4 (%d): Test growing stack past 1 page!\n", getpid());
+
+  // call recursive function to grow the call stack
+  out = recusive_builder(x);
 
   // Signal the semaphore to tell the original process that we're done
   if(sem_signal(test_complete) != SYNC_SUCCESS) {
-    Printf("TEST3 (%d): Bad semaphore test_complete (%d)!\n", getpid(), test_complete);
+    Printf("TEST4 (%d): Bad semaphore test_complete (%d)!\n", getpid(), test_complete);
     Exit();
   }
 
   // attempt to access that location
-  Printf("TEST3 (%d): Accessing Memory Value: %d (decimal)\n", getpid(), *ptr);
+  Printf("TEST4 (%d): Accessing Memory Value: %d (decimal)\n", getpid(), *ptr);
 }
