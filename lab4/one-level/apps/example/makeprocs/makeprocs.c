@@ -13,8 +13,19 @@ void test_wrapper(int test_id){
 
   sem_t test_complete;             // Semaphore used to wait until all spawned processes have completed
   char test_completed_str[10];      // Used as command-line argument to pass page_mapped handle to new processes
+  int num_processes;
 
-  if ((test_complete = sem_create(0)) == SYNC_FAIL) {
+  switch(test_id) {
+    case 1: num_processes = 1;    break;
+    case 2: num_processes = 1;    break;
+    case 3: num_processes = 1;    break;
+    case 4: num_processes = 1;    break;
+    case 5: num_processes = 100;  break;
+    case 6: num_processes = 30;   break;
+  }
+
+
+  if ((test_complete = sem_create(num_processes - 1)) == SYNC_FAIL) {
     Printf("makeprocs (%d): Bad sem_create\n", getpid());
     Exit();
   }
@@ -30,7 +41,6 @@ void test_wrapper(int test_id){
       break;
     case 2:
       process_create(TEST2, test_completed_str, NULL);
-
       break;
     case 3:
       break;
@@ -41,6 +51,7 @@ void test_wrapper(int test_id){
     case 6:
       break;
   }
+
   if (sem_wait(test_complete) != SYNC_SUCCESS) {
     Printf("Bad semaphore test_complete (%d) in TEST%d\n", test_complete, test_id);
     Exit();
@@ -69,6 +80,8 @@ void main (int argc, char *argv[])
   Printf("Start Testing\n");
   Printf("-------------------------------------------------------------------------------------\n");
 
+  test_wrapper(1);
+  Printf("-------------------------------------------------------------------------------------\n");
   test_wrapper(1);
   Printf("-------------------------------------------------------------------------------------\n");
   test_wrapper(2);
