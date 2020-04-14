@@ -47,7 +47,7 @@ void main (int argc, char *argv[])
 
   // Create semaphore to not exit this process until all other processes 
   // have signalled that they are complete.
-  if ((s_procs_completed = sem_create(0)) == SYNC_FAIL) {
+  if ((s_procs_completed = sem_create(2-1)) == SYNC_FAIL) {
     Printf("makeprocs (%d): Bad sem_create\n", getpid());
     Exit();
   }
