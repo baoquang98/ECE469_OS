@@ -1,0 +1,51 @@
+1. How to build?
+Same as before, use makefile
+2. anything unusual about your solution that the TA should know,
+Did not have time for q5
+There is no test5 in q2 as it is calling test1 multiple times.
+Not sure the list is complete
+3. NOTE: please mention the files that you have modified for each of the questions
+    1.  lab4/one-level/
+                    include/os/
+                                process.h 
+                                memory.h 
+                                memory_constants.h 
+                    os/
+                        process.c 
+                        memory.c
+                    apps/example/
+                            Makefile
+                            makeprocs/makeprocs.c
+    2.  lab4/one-level/apps/example/
+                                    makeprocs/makeprocs.c
+                                    test1/
+                                        test1.c 
+                                        Makefile
+                                    test2/
+                                        test2.c 
+                                        Makefile
+                                    test3/
+                                        test3.c 
+                                        Makefile
+                                    test4/
+                                        test4.c 
+                                        Makefile
+                                    test6/
+                                        test6.c 
+                                        Makefile
+    3.  lab4/fork/
+                  os/
+                        process.c
+                        memory.c
+                  include/
+                        usertraps.h
+                        os/
+                            traps.h
+                            process.h
+                            usertraps.s
+    4. lab4/fork/apps/example/
+                              fork_test/
+                                        fork_test.c
+                                        Makefile
+                              Makefile
+
