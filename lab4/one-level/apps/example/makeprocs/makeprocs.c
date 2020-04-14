@@ -9,11 +9,17 @@
 #define TEST5 "test5.dlx.obj"
 #define TEST6 "test6.dlx.obj"
 
-void test1(sem_t s_procs_completed, char * s_procs_completed_str){
-  Printf("Start hello world testing: Print 'Hello World' and exit.\n");
-  process_create(TEST1, s_procs_completed_str, NULL);
-  Printf("Done with TEST1 in Q2\n");
-
+void test_wrapper(int test_id, sem_t s_procs_completed, char * s_procs_completed_str){
+  switch(test_id) {
+    case 1: 
+      process_create(TEST1, s_procs_completed_str, NULL);
+      break;
+    case 2:
+      Printf("Start hello world testing: Print 'Hello World' and exit.\n");
+      process_create(TEST2, s_procs_completed_str, NULL);
+      Printf("Done with TEST2 in Q2\n");
+      break;
+  }
   if (sem_wait(s_procs_completed) != SYNC_SUCCESS) {
     Printf("Bad semaphore s_procs_completed (%d) in TEST1\n", s_procs_completed);
     Exit();
@@ -48,7 +54,13 @@ void main (int argc, char *argv[])
   // on the command line, so we must first convert them from ints to strings.
   ditoa(s_procs_completed, s_procs_completed_str);
 
-  test1(s_procs_completed, s_procs_completed_str);
+  Printf("-------------------------------------------------------------------------------------\n");
+  Printf("Start Testing\n");
+  Printf("-------------------------------------------------------------------------------------\n");
+
+  test_wrapper(1, s_procs_completed, s_procs_completed_str);
+  Printf("-------------------------------------------------------------------------------------\n");
+  test_wrapper(2, s_procs_completed, s_procs_completed_str);
 
   // Create Hello World processes
   // Printf("-------------------------------------------------------------------------------------\n");
