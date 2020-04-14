@@ -4,17 +4,12 @@
 
 void main (int argc, char *argv[])
 {
-  sem_t s_procs_completed; // Semaphore to signal the original process that we're done
+  // sem_t s_procs_completed; // Semaphore to signal the original process that we're done
   int * ptr;
   Printf("Start accessing out of range testing (PID: %d): Access memory beyond the maximum virtual address.\n", getpid());
 
-  if (argc != 2) { 
-    Printf("Usage: %s <handle_to_procs_completed_semaphore>\n"); 
-    Exit();
-  } 
-
   // Convert the command-line strings into integers for use as handles
-  s_procs_completed = dstrtol(argv[1], NULL, 10);
+  // s_procs_completed = dstrtol(argv[1], NULL, 10);
 
   // Access memory beyond the maximum virtual address.
   ptr = (MEM_MAX_VIRTUAL_ADDRESS + 1);

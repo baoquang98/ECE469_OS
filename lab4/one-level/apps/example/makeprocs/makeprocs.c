@@ -77,7 +77,7 @@ void main (int argc, char *argv[])
   Printf("-------------------------------------------------------------------------------------\n");
   test_wrapper(2);
   Printf("-------------------------------------------------------------------------------------\n");
-  test_wrapper(3);
+  // test_wrapper(3);
   // Create Hello World processes
   // Printf("-------------------------------------------------------------------------------------\n");
   // Printf("makeprocs (%d): Creating %d hello world's in a row, but only one runs at a time\n", getpid(), num_hello_world);
