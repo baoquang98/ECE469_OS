@@ -12,7 +12,7 @@
 void test_wrapper(int test_id){
 
   sem_t test_complete;             // Semaphore used to wait until all spawned processes have completed
-  char s_procs_completed_str[10];      // Used as command-line argument to pass page_mapped handle to new processes
+  char test_completed_str[10];      // Used as command-line argument to pass page_mapped handle to new processes
 
   if ((test_complete = sem_create(0)) == SYNC_FAIL) {
     Printf("makeprocs (%d): Bad sem_create\n", getpid());
@@ -22,19 +22,15 @@ void test_wrapper(int test_id){
   // Setup the command-line arguments for the new processes.  We're going to
   // pass the handles to the semaphore as strings
   // on the command line, so we must first convert them from ints to strings.
-  ditoa(test_complete, s_procs_completed_str);
+  ditoa(test_complete, test_completed_str);
 
   switch(test_id) {
     case 1: 
-      process_create(TEST1, s_procs_completed_str, NULL);
+      process_create(TEST1, test_completed_str, NULL);
       break;
     case 2:
-      process_create(TEST2, s_procs_completed_str, NULL);
-      // Signal the semaphore to tell the original process that we're done
-      if(sem_signal(test_complete) != SYNC_SUCCESS) {
-        Printf("TEST2 (%d): Bad semaphore test_complete (%d)!\n", getpid(), test_complete);
-        Exit();
-      }
+      process_create(TEST2, test_completed_str, NULL);
+
       break;
     case 3:
       break;
@@ -83,7 +79,7 @@ void main (int argc, char *argv[])
   // Printf("makeprocs (%d): Creating %d hello world's in a row, but only one runs at a time\n", getpid(), num_hello_world);
   // for(i=0; i<num_hello_world; i++) {
   //   Printf("makeprocs (%d): Creating hello world #%d\n", getpid(), i);
-  //   process_create(HELLO_WORLD, s_procs_completed_str, NULL);
+  //   process_create(HELLO_WORLD, test_completed_str, NULL);
   //   if (sem_wait(test_complete) != SYNC_SUCCESS) {
   //     Printf("Bad semaphore test_complete (%d) in %s\n", test_complete, argv[0]);
   //     Exit();
