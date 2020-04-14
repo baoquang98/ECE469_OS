@@ -22,12 +22,7 @@ void main (int argc, char *argv[])
   // attempt to access that location
   Printf("Accessing Memory Value: %d (decimal)\n", *ptr);
 
-  // Signal the semaphore to tell the original process that we're done
-  if(sem_signal(s_procs_completed) != SYNC_SUCCESS) {
-    Printf("hello_world (%d): Bad semaphore s_procs_completed (%d)!\n", getpid(), s_procs_completed);
-    Exit();
-  }
 
   // Now print a message to show that everything worked
-  Printf("Done with TEST1 in Q2 (PID: %d)\n", getpid());
+  Printf("Done with TEST2 in Q2 (PID: %d)\n", getpid());
 }

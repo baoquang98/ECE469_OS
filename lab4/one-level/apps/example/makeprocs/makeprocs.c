@@ -15,9 +15,12 @@ void test_wrapper(int test_id, sem_t s_procs_completed, char * s_procs_completed
       process_create(TEST1, s_procs_completed_str, NULL);
       break;
     case 2:
-      Printf("Start hello world testing: Print 'Hello World' and exit.\n");
       process_create(TEST2, s_procs_completed_str, NULL);
-      Printf("Done with TEST2 in Q2\n");
+      // Signal the semaphore to tell the original process that we're done
+      if(sem_signal(s_procs_completed) != SYNC_SUCCESS) {
+        Printf("TEST2 (%d): Bad semaphore s_procs_completed (%d)!\n", getpid(), s_procs_completed);
+        Exit();
+      }
       break;
   }
   if (sem_wait(s_procs_completed) != SYNC_SUCCESS) {
@@ -58,9 +61,9 @@ void main (int argc, char *argv[])
   Printf("Start Testing\n");
   Printf("-------------------------------------------------------------------------------------\n");
 
-  test_wrapper(1, s_procs_completed, s_procs_completed_str);
+  process_create(TEST1, s_procs_completed_str, NULL);
   Printf("-------------------------------------------------------------------------------------\n");
-  test_wrapper(2, s_procs_completed, s_procs_completed_str);
+  process_create(TEST1, s_procs_completed_str, NULL);
 
   // Create Hello World processes
   // Printf("-------------------------------------------------------------------------------------\n");
