@@ -247,10 +247,10 @@ int MemoryAllocPage(void) {
   uint32 bit_position = 0;
   uint32 page_physical_index;
 
-  dbprintf('m', "Start to allocate pages\n");
+  // dbprintf('m', "Start to allocate pages\n");
   // Check if we still have free pages
   if(nfreepages == 0) {
-    dbprintf('m', "MemoryAllocPage: no available pages\n");
+    // dbprintf('m', "MemoryAllocPage: no available pages\n");
     return MEM_FAIL;
   }
 
@@ -259,7 +259,7 @@ int MemoryAllocPage(void) {
     index += 1;
     if(index >= freemapmax) {
       // index starts from 0
-      dbprintf('m', "MemoryAllocPage: no available pages\n");
+      // dbprintf('m', "MemoryAllocPage: no available pages\n");
       return MEM_FAIL;
     }
   }
@@ -274,7 +274,7 @@ int MemoryAllocPage(void) {
   freemap[index]  &= invert(1 << bit_position);
   // get the index of the page
   page_physical_index = (index * 32) + bit_position; 
-  dbprintf('m', "MemoryAllocPage: allocated memory from map=%d, page=%d\n", index, page_physical_index);
+  // dbprintf('m', "MemoryAllocPage: allocated memory from map=%d, page=%d\n", index, page_physical_index);
   // Decrement nfreepages
   nfreepages -= 1;
 
@@ -321,6 +321,7 @@ void MemoryFreePage(uint32 page) {
 
 
 void MemoryRopHandler(PCB * pcb) {
+  dbprintf("m", "\n\n\n\n\n\nhandler is indeed in place \n\n\n\n\n");
   // addresses to use
   uint32 fault_address = pcb->currentSavedFrame[PROCESS_STACK_FAULT];
   // corresponding pages for the addresses

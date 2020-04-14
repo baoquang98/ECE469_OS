@@ -249,7 +249,7 @@ int MemoryAllocPage(void) {
   dbprintf('m', "Start to allocate pages\n");
   // Check if we still have free pages
   if(nfreepages == 0) {
-    dbprintf('m', "MemoryAllocPage: no available pages\n");
+    // dbprintf('m', "MemoryAllocPage: no available pages\n");
     return MEM_FAIL;
   }
 
@@ -258,7 +258,7 @@ int MemoryAllocPage(void) {
     index += 1;
     if(index >= freemapmax) {
       // index starts from 0
-      dbprintf('m', "MemoryAllocPage: no available pages\n");
+      // dbprintf('m', "MemoryAllocPage: no available pages\n");
       return MEM_FAIL;
     }
   }
@@ -273,7 +273,7 @@ int MemoryAllocPage(void) {
   freemap[index]  &= invert(1 << bit_position);
   // get the index of the page
   page_physical_index = (index * 32) + bit_position; 
-  dbprintf('m', "MemoryAllocPage: allocated memory from map=%d, page=%d\n", index, page_physical_index);
+  // dbprintf('m', "MemoryAllocPage: allocated memory from map=%d, page=%d\n", index, page_physical_index);
   // Decrement nfreepages
   nfreepages -= 1;
 
